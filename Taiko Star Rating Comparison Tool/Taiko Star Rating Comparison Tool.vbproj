@@ -52,6 +52,7 @@
     <Reference Include="System.Deployment" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Windows.Forms.DataVisualization" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -74,6 +75,12 @@
   <ItemGroup>
     <Compile Include="CalculationConstants.vb" />
     <Compile Include="Difficulty.vb" />
+    <Compile Include="dlgMapData.Designer.vb">
+      <DependentUpon>dlgMapData.vb</DependentUpon>
+    </Compile>
+    <Compile Include="dlgMapData.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="frmTaikoSR.vb">
       <SubType>Form</SubType>
     </Compile>
@@ -99,6 +106,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="dlgMapData.resx">
+      <DependentUpon>dlgMapData.vb</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="frmTaikoSR.resx">
       <DependentUpon>frmTaikoSR.vb</DependentUpon>
     </EmbeddedResource>

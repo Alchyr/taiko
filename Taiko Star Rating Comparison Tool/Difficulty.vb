@@ -32,8 +32,6 @@
             CalculateStrains(hitobjects, 1)
             OldStarRating = OldCalculateDifficulty(hitobjects, 1) * old_star_scaling_factor
             NewStarRating = CalculateDifficulty(hitobjects) * STAR_SCALING_FACTOR
-            OldStarRating = Math.Round(OldStarRating, 2)
-            NewStarRating = Math.Round(NewStarRating, 2)
         End If
     End Sub
     Public Sub CalcDT(ByRef hitobjects As List(Of HitObject))
@@ -41,8 +39,6 @@
             CalculateStrains(hitobjects, 1.5)
             OldStarRatingDT = OldCalculateDifficulty(hitobjects, 1.5) * old_star_scaling_factor
             NewStarRatingDT = CalculateDifficulty(hitobjects) * STAR_SCALING_FACTOR
-            OldStarRatingDT = Math.Round(OldStarRatingDT, 2)
-            NewStarRatingDT = Math.Round(NewStarRatingDT, 2)
         End If
     End Sub
 

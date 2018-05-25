@@ -137,7 +137,7 @@
         'consistency
         addition = (1 - previous.Consistency) * STAMINA_GROWTH
         If (previous.timeElapsed > 0) Then
-            decay = Math.Pow(STAMINA_DECAY_BASE, timeElapsed / (previous.timeElapsed * 3))
+            decay = Math.Pow(STAMINA_DECAY_BASE, timeElapsed / (previous.timeElapsed * 2))
         Else
             decay = 0
         End If

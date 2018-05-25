@@ -9,11 +9,12 @@
     Private calcDT As Boolean
 
     Private osuFolder As String
-    Private data As List(Of Object())
+    Private data As List(Of Difficulty)
     Private mapFolders As ObjectModel.ReadOnlyCollection(Of String)
 
     Private Sub FormLoad(sender As Object, e As EventArgs) Handles MyBase.Load
-        data = New List(Of Object())
+        data = New List(Of Difficulty)
+        loadState = 2
         SetupDataGridView()
         lblReport.Text = ""
         If My.Computer.FileSystem.DirectoryExists("C:\Users\" + UserName + "\AppData\Local\osu!") Then
@@ -81,32 +82,36 @@
     End Sub
 
     Private Sub btnLoad_Click(sender As Object, e As EventArgs) Handles btnLoad.Click
-        dgvSR.Rows.Clear()
-        data.Clear()
+        If (loadState = 2) Then
+            dgvSR.Rows.Clear()
+            data.Clear()
 
-        barLoad.Value = 0
-        loadState = 0
-        calcDT = chkDT.Checked
-        difficultyCount = 0
-        displayedCount = 0
-        Try
-            'check map folder
-            mapFolders = My.Computer.FileSystem.GetDirectories(osuFolder + "\Songs\")
+            barLoad.Value = 0
+            loadState = 0
+            calcDT = chkDT.Checked
+            difficultyCount = 0
+            displayedCount = 0
+            Try
+                'check map folder
+                mapFolders = My.Computer.FileSystem.GetDirectories(osuFolder + "\Songs\")
 
-            loadMaps = New ComponentModel.BackgroundWorker With {
-                .WorkerSupportsCancellation = False,
-                .WorkerReportsProgress = True
-            }
+                loadMaps = New ComponentModel.BackgroundWorker With {
+                    .WorkerSupportsCancellation = False,
+                    .WorkerReportsProgress = True
+                }
 
-            AddHandler loadMaps.DoWork, AddressOf MapTask
-            AddHandler loadMaps.RunWorkerCompleted, AddressOf mapFinalize
-            AddHandler loadMaps.ProgressChanged, AddressOf progressUpdate
+                AddHandler loadMaps.DoWork, AddressOf MapTask
+                AddHandler loadMaps.RunWorkerCompleted, AddressOf mapFinalize
+                AddHandler loadMaps.ProgressChanged, AddressOf progressUpdate
 
-            loadMaps.RunWorkerAsync()
-        Catch ex As Exception
-            MsgBox("Error loading beatmaps.", , "Error")
-            Close()
-        End Try
+                loadMaps.RunWorkerAsync()
+            Catch ex As Exception
+                MsgBox("Error loading beatmaps.", , "Error")
+                Close()
+            End Try
+        Else
+            MsgBox("Already loading maps!", , "Hey there what you doin")
+        End If
     End Sub
 
     Private Sub progressUpdate(ByVal sender As Object, ByVal e As ComponentModel.ProgressChangedEventArgs)
@@ -121,7 +126,9 @@
                 Case 1
                     lblReport.Text = difficultyCount.ToString() + " taiko maps found"
                     While (displayedCount < difficultyCount)
-                        dgvSR.Rows.Add(data.Item(displayedCount))
+                        Dim diff As Difficulty = data(displayedCount)
+                        Dim newRow() As Object = {diff.ToString(), diff.ObjectCount, Math.Round(diff.OldStarRating, 2), Math.Round(diff.NewStarRating, 2), Math.Round(diff.NewStarRating - diff.OldStarRating, 2), Math.Round(diff.OldStarRatingDT, 2), Math.Round(diff.NewStarRatingDT, 2), Math.Round(diff.NewStarRatingDT - diff.OldStarRatingDT, 2)}
+                        dgvSR.Rows.Add(newRow)
                         displayedCount += 1
                     End While
             End Select
@@ -160,8 +167,7 @@
                         Dim diff As Difficulty = ReadDifficulty(file)
                         If (diff.IsTaiko()) Then
                             'add this difficulty to chart
-                            Dim newRow() As Object = {diff.ToString(), diff.ObjectCount, diff.OldStarRating, diff.NewStarRating, Math.Abs(diff.OldStarRating - diff.NewStarRating), diff.OldStarRatingDT, diff.NewStarRatingDT, Math.Abs(diff.OldStarRatingDT - diff.NewStarRatingDT)}
-                            data.Add(newRow)
+                            data.Add(diff)
                             difficultyCount += 1 'one taiko map found
                         End If
                     Catch ex As Exception
@@ -184,6 +190,7 @@
 
     Private Sub mapFinalize()
         barLoad.Value = 0
+        loadState = 2
     End Sub
 
     Private Function ReadDifficulty(ByVal file As String) As Difficulty
@@ -239,4 +246,73 @@
 
         Return hitobjects
     End Function
+    Private Function ReadHitObjects(ByRef diff As Difficulty) As List(Of HitObject)
+        Dim r As IO.StreamReader = New IO.StreamReader(diff.File())
+        Dim currentLine As String = r.ReadLine()
+        Dim hitobjects As List(Of HitObject) = New List(Of HitObject)
+
+        While Not (currentLine.Equals("[HitObjects]") Or r.EndOfStream)
+            currentLine = r.ReadLine()
+        End While
+
+        'current line - [HitObjects]
+        currentLine = r.ReadLine().Trim("     ".ToCharArray())
+        While Not (r.EndOfStream Or currentLine.Length = 0)
+            'hitobjects - x,y,ms,a,b,hitsound:hitsound:hitsound:hitsound:
+            hitobjects.Add(New HitObject(currentLine))
+
+            currentLine = r.ReadLine().Trim("     ".ToCharArray())
+        End While
+        If (currentLine.Length > 0) Then
+            hitobjects.Add(New HitObject(currentLine))
+        End If
+
+        r.Close()
+
+        diff.ObjectCount = hitobjects.Count
+
+        hitobjects.Sort()
+
+        Return hitobjects
+    End Function
+
+    Private Sub dgvSR_CellDoubleClick(sender As Object, e As DataGridViewCellEventArgs) Handles dgvSR.CellDoubleClick
+        If (data.Count > 0) Then
+            ViewDetail(data.Find(Function(i) i.ToString().Equals(dgvSR.Rows.Item(e.RowIndex).Cells().Item(0).Value.ToString())))
+        End If
+    End Sub
+    Private Sub ViewDetail(ByRef diff As Difficulty)
+        'as hitobjects aren't saved because there are WAAAAAY too many of them and doing so would be inefficient, must recalculate
+        If (loadState = 2) Then
+            Dim hitobjects As List(Of HitObject) = ReadHitObjects(diff)
+            diff.CalcSR(hitobjects)
+
+            Dim speed As DataVisualization.Charting.Series = New DataVisualization.Charting.Series("Speed") With {
+                .ChartType = DataVisualization.Charting.SeriesChartType.Line,
+                .XValueType = DataVisualization.Charting.ChartValueType.Double
+            }
+            Dim consistency As DataVisualization.Charting.Series = New DataVisualization.Charting.Series("Consistency") With {
+                .ChartType = DataVisualization.Charting.SeriesChartType.Line,
+                .XValueType = DataVisualization.Charting.ChartValueType.Double
+            }
+            Dim technicality As DataVisualization.Charting.Series = New DataVisualization.Charting.Series("Technicality") With {
+                .ChartType = DataVisualization.Charting.SeriesChartType.Line,
+                .XValueType = DataVisualization.Charting.ChartValueType.Double
+            }
+
+            speed.Points.AddXY(0, 0)
+            consistency.Points.AddXY(0, 0)
+            technicality.Points.AddXY(0, 0)
+            For Each hit As HitObject In hitobjects
+                speed.Points.AddXY(hit.ObjectPos, hit.Speed)
+                consistency.Points.AddXY(hit.ObjectPos, hit.Consistency)
+                technicality.Points.AddXY(hit.ObjectPos, hit.Technicality)
+            Next
+
+
+            dlgMapData.ShowDialog(diff.DifficultyName, hitobjects.Last.ObjectPos, {speed, consistency, technicality})
+        Else
+            MsgBox("You can double-click to view map details once all maps have been loaded.", , "hold up there pardner")
+        End If
+    End Sub
 End Class

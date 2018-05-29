@@ -14,6 +14,8 @@
     Public Property Consistency As Double = 0
     Public Property Technicality As Double = 0
 
+    Private streamBonus As Double = 0
+
     Private previousKatLength() As Integer = {0, 0, 0}
     Private previousDonLength() As Integer = {0, 0, 0}
 
@@ -23,21 +25,22 @@
 
     'for both
     Private timeElapsed As Double = 0
+    Private OldSameTypeCount As Integer = 1
     Private SameTypeCount As Integer = 1
 
     Public Sub New(ByVal pos As Long)
-        objectPos = pos
+        ObjectPos = pos
         'USE ONLY FOR SEARCHING POS WITH COMPARISON
     End Sub
     Public Property Pos As Long
         Get
-            Return objectPos
+            Return ObjectPos
         End Get
         Set(ByVal value As Long)
             If (value > 0) Then
-                objectPos = value
+                ObjectPos = value
             Else
-                objectPos = 0
+                ObjectPos = 0
             End If
         End Set
     End Property
@@ -48,7 +51,7 @@
 
         Dim temp As Integer = description.IndexOf(",")
 
-        objectPos = Long.Parse(description.Substring(0, temp)) 'just in case? Some people map some pretty long things.
+        ObjectPos = Long.Parse(description.Substring(0, temp)) 'just in case? Some people map some pretty long things.
         description = description.Substring(temp + 1)
 
         temp = description.IndexOf(",")
@@ -61,11 +64,11 @@
         End If
         Dim hitsound As Integer = Integer.Parse(description.Substring(0, temp))
 
-        isKat = False 'default to don
+        IsKat = False 'default to don
 
         temp = hitsound
         If (temp >= 8) Then 'clap
-            isKat = True
+            IsKat = True
             temp -= 8
         End If
         If (temp >= 4) Then 'finish
@@ -73,7 +76,7 @@
             temp -= 4
         End If
         If (temp >= 2) Then 'whistle
-            isKat = True
+            IsKat = True
         End If
 
         If (type = 5 Or type = 6 Or type = 12) Then 'these are new combo
@@ -92,7 +95,7 @@
             Return 1
         End If
 
-        Return Me.objectPos - other.objectPos
+        Return Me.ObjectPos - other.ObjectPos
     End Function
 
     Public Function calculateStrain(ByRef previous As HitObject, ByVal timerate As Double) As Boolean
@@ -128,9 +131,18 @@
 
         'NEW STRAIN______________________________________________________________________
 
-        Dim decay As Double = SPEED_DECAY_ONE / (timeElapsed + SPEED_DECAY_TWO)
+        Dim decay As Double = Math.Min(1, SPEED_DECAY_ONE / (timeElapsed + SPEED_DECAY_TWO))
         Dim addition As Double = 1
         Dim additionFactor As Double = 1
+
+        If (previous.timeElapsed / timeElapsed > 0.8 And previous.timeElapsed / timeElapsed < 1.2) Then
+            streamBonus = Math.Min(previous.streamBonus + STREAM_BONUS, STREAM_BONUS_CAP)
+            addition += streamBonus
+        Else
+            streamBonus = previous.streamBonus * decay * decay
+        End If
+
+        addition += TypeChangeAddition(previous)
 
         Speed = previous.Speed * decay + addition
 
@@ -151,14 +163,14 @@
         End If
         addition = 0
 
-        addition += TypeChangeAddition(previous)
         addition += RhythmChangeAddition(previous)
 
         Technicality = previous.Technicality * decay + addition
 
         'totalStrain
         Strain = Speed * Consistency * STAMINA_SCALING_FACTOR
-        Strain *= Math.Max(1, 2 - (1 / Math.Pow(Technicality, TECHNICALITY_SCALING_FACTOR)))
+        'Strain *= 2 - (TECHNICALITY_SCALING_FACTOR / (Technicality + TECHNICALITY_SCALING_FACTOR))
+        Strain *= Math.Min((1 - (2 / (Technicality - 6))) - (1 / 3), 1.5)
         Return True
     End Function
 
@@ -166,35 +178,33 @@
     Private Function TypeChangeAddition(ByRef previous As HitObject) As Double
         Dim returnVal As Double = 0
         If (IsKat() Xor previous.IsKat()) Then 'color is different from previous
-            If SameTypeCount > 1 Then
+            If previous.SameTypeCount > 1 Then
                 If (IsKat()) Then 'this is kat, previous is done
-                    If (previousDonLength.Contains(SameTypeCount)) Then
-                        returnVal = WEAK_SWAP_BONUS * Math.Min(MAX_SWAP_BONUS_MULT, SameTypeCount)
+                    If (previousDonLength.Contains(previous.SameTypeCount)) Then
+                        returnVal = WEAK_SWAP_BONUS * Math.Min(MAX_SWAP_BONUS_MULT, previous.SameTypeCount)
                     Else
-                        returnVal = BIG_SWAP_BONUS * Math.Min(MAX_SWAP_BONUS_MULT, SameTypeCount)
+                        returnVal = BIG_SWAP_BONUS * Math.Min(MAX_SWAP_BONUS_MULT, previous.SameTypeCount)
                     End If
                 Else 'this is don, previous is kat
-                    If (previousKatLength.Contains(SameTypeCount)) Then
-                        returnVal = WEAK_SWAP_BONUS * Math.Min(MAX_SWAP_BONUS_MULT, SameTypeCount)
+                    If (previousKatLength.Contains(previous.SameTypeCount)) Then
+                        returnVal = WEAK_SWAP_BONUS * Math.Min(MAX_SWAP_BONUS_MULT, previous.SameTypeCount)
                     Else
-                        returnVal = BIG_SWAP_BONUS * Math.Min(MAX_SWAP_BONUS_MULT, SameTypeCount)
+                        returnVal = BIG_SWAP_BONUS * Math.Min(MAX_SWAP_BONUS_MULT, previous.SameTypeCount)
                     End If
                 End If
             End If
 
-            If (IsKat()) Then 'if the object is a kat, the last chain was don
-                previousDonLength(2) = previousDonLength(1)
-                previousDonLength(1) = previousDonLength(0)
-                previousDonLength(0) = SameTypeCount
-            Else 'otherwise kat
+            If (previous.IsKat()) Then 'if the object is a kat, the last chain was kay
                 previousKatLength(2) = previousKatLength(1)
                 previousKatLength(1) = previousKatLength(0)
-                previousKatLength(0) = SameTypeCount
+                previousKatLength(0) = previous.SameTypeCount
+            Else 'otherwise don
+                previousDonLength(2) = previousDonLength(1)
+                previousDonLength(1) = previousDonLength(0)
+                previousDonLength(0) = previous.SameTypeCount
             End If
         Else
-            lastTypeSwitchEven = previous.lastTypeSwitchEven
-            'SameTypeCount = previous.SameTypeCount + 1
-            'Uncomment this if OldTypeChange addition is removed
+            SameTypeCount = previous.SameTypeCount + 1
         End If
         Return returnVal
     End Function
@@ -204,7 +214,7 @@
                 Dim speedup As Double = (timeElapsed / previous.timeElapsed)  'if this is <1, it has gotten faster
                 Dim slowdown As Double = (previous.timeElapsed / timeElapsed) 'if < 1, it got slower
 
-                If (speedup < 1) Then
+                If (speedup < 0.98) Then 'sometimes gaps are slightly different due to position rounding
                     If (speedup > 0.9) Then
                         Return SPEEDUP_TINY_BONUS
                     ElseIf (speedup >= 0.52) Then
@@ -214,7 +224,7 @@
                     Else
                         Return SPEEDUP_BIG_BONUS
                     End If
-                ElseIf (slowdown < 1) Then
+                ElseIf (slowdown < 0.98) Then
                     If (slowdown > 0.9) Then
                         Return SLOWDOWN_TINY_BONUS
                     ElseIf (slowdown >= 0.52) Then
@@ -235,7 +245,7 @@
         ' If we don't have the same hit type, trigger a type change!
         If (previous.IsKat() Xor IsKat()) Then
 
-            If (previous.SameTypeCount Mod 2 = 0) Then
+            If (previous.OldSameTypeCount Mod 2 = 0) Then
                 lastTypeSwitchEven = 1
             Else
                 lastTypeSwitchEven = 0
@@ -250,7 +260,7 @@
             End Select
         Else ' No type change? Increment counter And keep track of last type switch
             lastTypeSwitchEven = previous.lastTypeSwitchEven
-            SameTypeCount = previous.SameTypeCount + 1
+            OldSameTypeCount = previous.OldSameTypeCount + 1
         End If
 
         Return 0

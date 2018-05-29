@@ -31,14 +31,14 @@
         If (hitobjects.Count > 0) Then
             CalculateStrains(hitobjects, 1)
             OldStarRating = OldCalculateDifficulty(hitobjects, 1) * old_star_scaling_factor
-            NewStarRating = CalculateDifficulty(hitobjects) * STAR_SCALING_FACTOR
+            NewStarRating = CalculateDifficulty(hitobjects, 1) * STAR_SCALING_FACTOR
         End If
     End Sub
     Public Sub CalcDT(ByRef hitobjects As List(Of HitObject))
         If (hitobjects.Count > 0) Then
             CalculateStrains(hitobjects, 1.5)
             OldStarRatingDT = OldCalculateDifficulty(hitobjects, 1.5) * old_star_scaling_factor
-            NewStarRatingDT = CalculateDifficulty(hitobjects) * STAR_SCALING_FACTOR
+            NewStarRatingDT = CalculateDifficulty(hitobjects, 1.5) * STAR_SCALING_FACTOR
         End If
     End Sub
 
@@ -53,33 +53,50 @@
         Next
     End Sub
 
-    Private Function CalculateDifficulty(ByRef hitobjects As List(Of HitObject)) As Double
-        Dim sr As Double = 0
+    Private Function CalculateDifficulty(ByRef hitobjects As List(Of HitObject), ByVal timerate As Double) As Double
+        Dim actualStrainStep As Double = STRAIN_GAP / timerate
 
-        Dim weight As Double = 1
-        Dim totalWeight As Double = 0
+        Dim highestStrains As List(Of Double) = New List(Of Double)
+        Dim intervalEndTime As Double
+        Dim maximumStrain As Double = 0 'keep track of highest strain in interval
 
-        Dim hitStrains As List(Of Double) = New List(Of Double)
-        For Each hit As HitObject In hitobjects
-            hitStrains.Add(hit.Strain)
-        Next
+        Dim previous As HitObject = Nothing
 
-        hitStrains.Sort()
-        hitStrains.Reverse()
-
-        For Each strain As Double In hitStrains
-            If (strain > 0) Then
-                sr += strain * weight
-
-                totalWeight += weight
-
-                weight *= NORMAL_STRAIN_DECAY
+        If (hitobjects.Count > 0) Then
+            Dim length As Double = (hitobjects.Last().ObjectPos - hitobjects.First().ObjectPos) / timerate
+            If (actualStrainStep * 100 > length) Then
+                actualStrainStep = Math.Max(length / 100, 10) 'to ensure very short maps still get proper star rating; minimum gap is 10
             End If
+            intervalEndTime = hitobjects(0).ObjectPos + actualStrainStep
+        End If
+
+        For Each hit As HitObject In hitobjects
+            While (hit.Pos > intervalEndTime)
+                highestStrains.Add(maximumStrain)
+
+                maximumStrain = 0
+                'increase interval end time until it is past current position
+                intervalEndTime += actualStrainStep
+            End While
+
+            maximumStrain = Math.Max(hit.Strain, maximumStrain)
+
+            previous = hit
         Next
 
-        sr /= totalWeight
+        'now build weighted sum from these highest points
 
-        Return sr
+        Dim Difficulty As Double = 0
+        Dim weight As Double = 1.0
+        highestStrains.Sort()
+        highestStrains.Reverse()
+
+        For Each strain As Double In highestStrains
+            Difficulty += weight * strain
+            weight *= DECAY_WEIGHT
+        Next
+
+        Return Difficulty
     End Function
     Private Function OldCalculateDifficulty(ByRef hitobjects As List(Of HitObject), ByVal timerate As Double) As Double
         Dim actualStrainStep As Double = old_strain_step * timerate

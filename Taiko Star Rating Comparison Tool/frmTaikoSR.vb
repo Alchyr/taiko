@@ -277,8 +277,10 @@
     End Function
 
     Private Sub dgvSR_CellDoubleClick(sender As Object, e As DataGridViewCellEventArgs) Handles dgvSR.CellDoubleClick
-        If (data.Count > 0) Then
-            ViewDetail(data.Find(Function(i) i.ToString().Equals(dgvSR.Rows.Item(e.RowIndex).Cells().Item(0).Value.ToString())))
+        If (e.RowIndex >= 0) Then
+            If (data.Count > 0) Then
+                ViewDetail(data.Find(Function(i) i.ToString().Equals(dgvSR.Rows.Item(e.RowIndex).Cells().Item(0).Value.ToString())))
+            End If
         End If
     End Sub
     Private Sub ViewDetail(ByRef diff As Difficulty)

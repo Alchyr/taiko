@@ -28,6 +28,8 @@ Partial Class frmTaikoSR
         Me.lblReport = New System.Windows.Forms.Label()
         Me.dgvSR = New System.Windows.Forms.DataGridView()
         Me.chkDT = New System.Windows.Forms.CheckBox()
+        Me.lblSearch = New System.Windows.Forms.Label()
+        Me.txtSearch = New System.Windows.Forms.TextBox()
         CType(Me.dgvSR, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
         '
@@ -81,7 +83,7 @@ Partial Class frmTaikoSR
         Me.dgvSR.Location = New System.Drawing.Point(12, 51)
         Me.dgvSR.Name = "dgvSR"
         Me.dgvSR.ScrollBars = System.Windows.Forms.ScrollBars.Vertical
-        Me.dgvSR.Size = New System.Drawing.Size(776, 387)
+        Me.dgvSR.Size = New System.Drawing.Size(776, 368)
         Me.dgvSR.StandardTab = True
         Me.dgvSR.TabIndex = 4
         '
@@ -96,11 +98,33 @@ Partial Class frmTaikoSR
         Me.chkDT.Text = "Calculate DT"
         Me.chkDT.UseVisualStyleBackColor = True
         '
+        'lblSearch
+        '
+        Me.lblSearch.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
+        Me.lblSearch.AutoSize = True
+        Me.lblSearch.Location = New System.Drawing.Point(9, 428)
+        Me.lblSearch.Name = "lblSearch"
+        Me.lblSearch.Size = New System.Drawing.Size(44, 13)
+        Me.lblSearch.TabIndex = 6
+        Me.lblSearch.Text = "Search:"
+        '
+        'txtSearch
+        '
+        Me.txtSearch.Anchor = CType(((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left) _
+            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.txtSearch.Location = New System.Drawing.Point(59, 425)
+        Me.txtSearch.Name = "txtSearch"
+        Me.txtSearch.Size = New System.Drawing.Size(729, 20)
+        Me.txtSearch.TabIndex = 7
+        Me.txtSearch.WordWrap = False
+        '
         'frmTaikoSR
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(800, 450)
+        Me.Controls.Add(Me.txtSearch)
+        Me.Controls.Add(Me.lblSearch)
         Me.Controls.Add(Me.chkDT)
         Me.Controls.Add(Me.dgvSR)
         Me.Controls.Add(Me.lblReport)
@@ -123,4 +147,6 @@ Partial Class frmTaikoSR
     Friend WithEvents lblReport As Label
     Friend WithEvents dgvSR As DataGridView
     Friend WithEvents chkDT As CheckBox
+    Friend WithEvents lblSearch As Label
+    Friend WithEvents txtSearch As TextBox
 End Class

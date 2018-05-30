@@ -13,11 +13,12 @@ Public Class dlgMapData
             'area.AxisX.CustomLabels.Add(New CustomLabel(maximum - 1.5, maximum - 0.5, TimeConvert(maximum), 0, LabelMarkStyle.None))
         Next
 
-        chtConsistency.ChartAreas.Item("Technicality").AxisY.Maximum = 5
+        chtConsistency.ChartAreas.Item("Rhythm").AxisY.Maximum = 5
 
         data(0).ChartArea = "Speed"
         data(1).ChartArea = "Consistency"
-        data(2).ChartArea = "Technicality"
+        data(2).ChartArea = "Rhythm"
+        data(3).ChartArea = "Color"
 
         For Each s As Series In data
             chtConsistency.Series.Add(s)
@@ -44,4 +45,18 @@ Public Class dlgMapData
 
         Return returnString
     End Function
+
+    Private Sub chtConsistency_Click(sender As Object, e As EventArgs) Handles chtConsistency.Click
+        If (chtConsistency.ChartAreas(0).Visible) Then
+            chtConsistency.ChartAreas(0).Visible = False
+            chtConsistency.ChartAreas(1).Visible = False
+            chtConsistency.ChartAreas(2).Visible = True
+            chtConsistency.ChartAreas(3).Visible = True
+        Else
+            chtConsistency.ChartAreas(0).Visible = True
+            chtConsistency.ChartAreas(1).Visible = True
+            chtConsistency.ChartAreas(2).Visible = False
+            chtConsistency.ChartAreas(3).Visible = False
+        End If
+    End Sub
 End Class

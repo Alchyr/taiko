@@ -9,7 +9,9 @@
     Private calcDT As Boolean
 
     Private osuFolder As String
+
     Private data As List(Of Difficulty)
+
     Private mapFolders As ObjectModel.ReadOnlyCollection(Of String)
 
     Private Sub FormLoad(sender As Object, e As EventArgs) Handles MyBase.Load
@@ -127,6 +129,7 @@
                     lblReport.Text = difficultyCount.ToString() + " taiko maps found"
                     While (displayedCount < difficultyCount)
                         Dim diff As Difficulty = data(displayedCount)
+                        'Dim newRow() As Object = {diff.ToString(), diff.ObjectCount, Math.Round(diff.OldStarRating, 2), Math.Round(diff.NewStarRating, 2), Math.Round(diff.NewStarRating - diff.OldStarRating, 2), Math.Round(diff.OldStarRatingDT, 2), Math.Round(diff.NewStarRatingDT, 2), Math.Round(diff.NewStarRatingDT - diff.OldStarRatingDT, 2)}
                         Dim newRow() As Object = {diff.ToString(), diff.ObjectCount, Math.Round(diff.OldStarRating, 2), Math.Round(diff.NewStarRating, 2), Math.Round(diff.NewStarRating - diff.OldStarRating, 2), Math.Round(diff.OldStarRatingDT, 2), Math.Round(diff.NewStarRatingDT, 2), Math.Round(diff.NewStarRatingDT - diff.OldStarRatingDT, 2)}
                         dgvSR.Rows.Add(newRow)
                         displayedCount += 1
@@ -190,6 +193,8 @@
 
     Private Sub mapFinalize()
         barLoad.Value = 0
+        dgvSR.Columns().Item(0).MinimumWidth = dgvSR.Columns().Item(0).Width
+        dgvSR.Columns().Item(0).AutoSizeMode = DataGridViewAutoSizeColumnMode.None
         loadState = 2
     End Sub
 
@@ -285,8 +290,8 @@
     End Sub
     Private Sub ViewDetail(ByRef diff As Difficulty)
         'as hitobjects aren't saved because there are WAAAAAY too many of them and doing so would be inefficient, must recalculate
-        If (loadState = 2) Then
-            Dim hitobjects As List(Of HitObject) = ReadHitObjects(diff)
+        'If (loadState = 2) Then
+        Dim hitobjects As List(Of HitObject) = ReadHitObjects(diff)
             diff.CalcSR(hitobjects)
 
             Dim speed As DataVisualization.Charting.Series = New DataVisualization.Charting.Series("Speed") With {
@@ -297,24 +302,84 @@
                 .ChartType = DataVisualization.Charting.SeriesChartType.Line,
                 .XValueType = DataVisualization.Charting.ChartValueType.Double
             }
-            Dim technicality As DataVisualization.Charting.Series = New DataVisualization.Charting.Series("Technicality") With {
+            Dim rhythm As DataVisualization.Charting.Series = New DataVisualization.Charting.Series("Rhythm") With {
+                .ChartType = DataVisualization.Charting.SeriesChartType.Line,
+                .XValueType = DataVisualization.Charting.ChartValueType.Double
+            }
+            Dim color As DataVisualization.Charting.Series = New DataVisualization.Charting.Series("Color") With {
                 .ChartType = DataVisualization.Charting.SeriesChartType.Line,
                 .XValueType = DataVisualization.Charting.ChartValueType.Double
             }
 
             speed.Points.AddXY(0, 0)
             consistency.Points.AddXY(0, 0)
-            technicality.Points.AddXY(0, 0)
+            rhythm.Points.AddXY(0, 0)
+            color.Points.AddXY(0, 0)
             For Each hit As HitObject In hitobjects
                 speed.Points.AddXY(hit.ObjectPos, hit.Speed)
                 consistency.Points.AddXY(hit.ObjectPos, hit.Consistency)
-                technicality.Points.AddXY(hit.ObjectPos, hit.Technicality)
+                rhythm.Points.AddXY(hit.ObjectPos, hit.Rhythm)
+                color.Points.AddXY(hit.ObjectPos, hit.Color)
             Next
 
 
-            dlgMapData.ShowDialog(diff.DifficultyName, hitobjects.Last.ObjectPos, {speed, consistency, technicality})
-        Else
-            MsgBox("You can double-click to view map details once all maps have been loaded.", , "hold up there pardner")
+            dlgMapData.ShowDialog(diff.DifficultyName, hitobjects.Last.ObjectPos, {speed, consistency, rhythm, color})
+        'Else
+        'MsgBox("You can double-click to view map details once all maps have been loaded.", , "hold up there pardner")
+        'End If
+    End Sub
+    Private Sub Search(ByVal searchFilter As String)
+        Dim terms() As String = searchFilter.ToLower().Split(" ")
+        Dim searchText As String = ""
+        Dim add As Boolean
+
+        dgvSR.Rows.Clear()
+
+        For Each item As Difficulty In data
+            add = True
+            searchText = item.ToString().ToLower()
+            For Each term As String In terms
+                If Not (searchText.Contains(term)) Then
+                    add = False
+                End If
+            Next
+            If add Then
+                Dim newRow() As Object = {item.ToString(), item.ObjectCount, Math.Round(item.OldStarRating, 2), Math.Round(item.NewStarRating, 2), Math.Round(item.NewStarRating - item.OldStarRating, 2), Math.Round(item.OldStarRatingDT, 2), Math.Round(item.NewStarRatingDT, 2), Math.Round(item.NewStarRatingDT - item.OldStarRatingDT, 2)}
+                dgvSR.Rows.Add(newRow)
+            End If
+        Next
+    End Sub
+    Private Sub ResetSearch()
+        If (dgvSR.Rows.Count < displayedCount) Then
+            dgvSR.Rows.Clear()
+            For Each item As Difficulty In data
+                Dim newRow() As Object = {item.ToString(), item.ObjectCount, Math.Round(item.OldStarRating, 2), Math.Round(item.NewStarRating, 2), Math.Round(item.NewStarRating - item.OldStarRating, 2), Math.Round(item.OldStarRatingDT, 2), Math.Round(item.NewStarRatingDT, 2), Math.Round(item.NewStarRatingDT - item.OldStarRatingDT, 2)}
+                dgvSR.Rows.Add(newRow)
+            Next
+        End If
+    End Sub
+    Private Sub txtSearch_KeyDown(sender As Object, e As KeyEventArgs) Handles txtSearch.KeyDown
+        If (e.KeyValue = Keys.Return) Then
+            If (loadState = 2) Then
+                If (data.Count > 0) Then
+                    If (txtSearch.Text.Length > 0) Then
+                        Search(txtSearch.Text)
+                    Else
+                        ResetSearch()
+                    End If
+                Else
+                    MsgBox("there's not even anything to search yet what are yo u doING", , "why tho")
+                End If
+            ElseIf (loadState = 1) Then
+                MsgBox("Please wait until all maps are loaded before searching.", , "DO THE PATIENCE")
+            End If
+            e.SuppressKeyPress = True
+        End If
+    End Sub
+
+    Private Sub txtSearch_KeyPress(sender As Object, e As KeyPressEventArgs) Handles txtSearch.KeyPress
+        If (e.KeyChar = vbCr) Then
+            e.Handled = True
         End If
     End Sub
 End Class

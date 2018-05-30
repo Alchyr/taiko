@@ -12,12 +12,13 @@
     Public Property Strain As Double = 0
     Public Property Speed As Double = 0
     Public Property Consistency As Double = 0
-    Public Property Technicality As Double = 0
+    Public Property Rhythm As Double = 0
+    Public Property Color As Double = 0
 
     Private streamBonus As Double = 0
 
-    Private previousKatLength() As Integer = {0, 0, 0}
-    Private previousDonLength() As Integer = {0, 0, 0}
+    Private previousKatLength() As Integer = {0, 0}
+    Private previousDonLength() As Integer = {0, 0}
 
     'for old
     Public Property OldStrain As Double = 1
@@ -131,25 +132,33 @@
 
         'NEW STRAIN______________________________________________________________________
 
-        Dim decay As Double = Math.Min(1, SPEED_DECAY_ONE / (timeElapsed + SPEED_DECAY_TWO))
+        Dim decay As Double = Math.Min(1, SPEED_DECAY_ONE / (timeElapsed + SPEED_DECAY_TWO)) + SPEED_DECAY_OFFSET
         Dim addition As Double = 1
+        Dim colorAddition As Double = 0
         Dim additionFactor As Double = 1
 
         If (previous.timeElapsed / timeElapsed > 0.8 And previous.timeElapsed / timeElapsed < 1.2) Then
             streamBonus = Math.Min(previous.streamBonus + STREAM_BONUS, STREAM_BONUS_CAP)
             addition += streamBonus
         Else
-            streamBonus = previous.streamBonus * decay * decay
+            streamBonus = previous.streamBonus * decay
         End If
 
-        addition += TypeChangeAddition(previous)
+        'color
+        colorAddition = TypeChangeAdditionTest(previous)
+        Color = colorAddition
 
-        Speed = previous.Speed * decay + addition
+        If (timeElapsed > 1000) Then
+            additionFactor = 0
+        End If
+
+
+        Speed = previous.Speed * decay + ((addition + colorAddition) * additionFactor)
 
         'consistency
         addition = (1 - previous.Consistency) * STAMINA_GROWTH
         If (previous.timeElapsed > 0) Then
-            decay = Math.Pow(STAMINA_DECAY_BASE, timeElapsed / (previous.timeElapsed * 2))
+            decay = Math.Pow(STAMINA_DECAY_BASE, timeElapsed / (previous.timeElapsed * CONSISTENCY_SCALE))
         Else
             decay = 0
         End If
@@ -157,6 +166,7 @@
         Consistency = (previous.Consistency * decay) + addition
 
         'technicality
+        'rhythm
         decay = TECHNICALITY_DECAY_BASE
         If (timeElapsed > 1000) Then
             decay = 0
@@ -165,48 +175,80 @@
 
         addition += RhythmChangeAddition(previous)
 
-        Technicality = previous.Technicality * decay + addition
+        Rhythm = previous.Rhythm * decay + addition
+
 
         'totalStrain
         Strain = Speed * Consistency * STAMINA_SCALING_FACTOR
-        'Strain *= 2 - (TECHNICALITY_SCALING_FACTOR / (Technicality + TECHNICALITY_SCALING_FACTOR))
-        Strain *= Math.Min((1 - (2 / (Technicality - 6))) - (1 / 3), 1.5)
+
+        Strain *= Math.Min((1 - (3 / (Rhythm - 6))) - 0.5, 3) 'max 1.5 normally
         Return True
     End Function
 
     'New Functions
     Private Function TypeChangeAddition(ByRef previous As HitObject) As Double
         Dim returnVal As Double = 0
+        previousDonLength = previous.previousDonLength
+        previousKatLength = previous.previousKatLength
         If (IsKat() Xor previous.IsKat()) Then 'color is different from previous
-            If previous.SameTypeCount > 1 Then
-                If (IsKat()) Then 'this is kat, previous is done
-                    If (previousDonLength.Contains(previous.SameTypeCount)) Then
-                        returnVal = WEAK_SWAP_BONUS * Math.Min(MAX_SWAP_BONUS_MULT, previous.SameTypeCount)
-                    Else
-                        returnVal = BIG_SWAP_BONUS * Math.Min(MAX_SWAP_BONUS_MULT, previous.SameTypeCount)
-                    End If
-                Else 'this is don, previous is kat
-                    If (previousKatLength.Contains(previous.SameTypeCount)) Then
-                        returnVal = WEAK_SWAP_BONUS * Math.Min(MAX_SWAP_BONUS_MULT, previous.SameTypeCount)
-                    Else
-                        returnVal = BIG_SWAP_BONUS * Math.Min(MAX_SWAP_BONUS_MULT, previous.SameTypeCount)
-                    End If
+
+            If (previous.IsKat()) Then 'previous is kat mono
+                If (previousKatLength.Contains(previous.SameTypeCount)) Then
+                    returnVal = WEAK_BONUS_SCALE * Math.Log(previous.SameTypeCount + SWAP_LOG_OFFSET, SWAP_LOG_BASE)
+                Else
+                    returnVal = BIG_BONUS_SCALE * Math.Log(previous.SameTypeCount + SWAP_LOG_OFFSET, SWAP_LOG_BASE)
+                End If
+            Else 'previous is don mono
+                If (previousDonLength.Contains(previous.SameTypeCount)) Then
+                    returnVal = WEAK_BONUS_SCALE * Math.Log(previous.SameTypeCount + SWAP_LOG_OFFSET, SWAP_LOG_BASE)
+                Else
+                    returnVal = BIG_BONUS_SCALE * Math.Log(previous.SameTypeCount + SWAP_LOG_OFFSET, SWAP_LOG_BASE)
                 End If
             End If
 
             If (previous.IsKat()) Then 'if the object is a kat, the last chain was kay
-                previousKatLength(2) = previousKatLength(1)
                 previousKatLength(1) = previousKatLength(0)
                 previousKatLength(0) = previous.SameTypeCount
             Else 'otherwise don
-                previousDonLength(2) = previousDonLength(1)
                 previousDonLength(1) = previousDonLength(0)
                 previousDonLength(0) = previous.SameTypeCount
             End If
         Else
             SameTypeCount = previous.SameTypeCount + 1
         End If
-        Return returnVal
+        Return Math.Min(returnVal, MAX_SWAP_BONUS)
+    End Function
+    Private Function TypeChangeAdditionTest(ByRef previous As HitObject) As Double
+        Dim returnVal As Double = 0
+        previousDonLength = previous.previousDonLength
+        previousKatLength = previous.previousKatLength
+        If (IsKat() Xor previous.IsKat()) Then 'color is different from previous
+
+            If (previous.IsKat()) Then 'previous is kat mono
+                If (previousKatLength.Contains(previous.SameTypeCount)) Then
+                    returnVal = WEAK_BONUS_SCALE * Math.Log(previous.SameTypeCount + SWAP_LOG_OFFSET, SWAP_LOG_BASE)
+                Else
+                    returnVal = BIG_BONUS_SCALE * Math.Log(previous.SameTypeCount + SWAP_LOG_OFFSET, SWAP_LOG_BASE)
+                End If
+            Else 'previous is don mono
+                If (previousDonLength.Contains(previous.SameTypeCount)) Then
+                    returnVal = WEAK_BONUS_SCALE * Math.Log(previous.SameTypeCount + SWAP_LOG_OFFSET, SWAP_LOG_BASE)
+                Else
+                    returnVal = BIG_BONUS_SCALE * Math.Log(previous.SameTypeCount + SWAP_LOG_OFFSET, SWAP_LOG_BASE)
+                End If
+            End If
+
+            If (previous.IsKat()) Then 'if the object is a kat, the last chain was kay
+                previousKatLength(1) = previousKatLength(0)
+                previousKatLength(0) = previous.SameTypeCount
+            Else 'otherwise don
+                previousDonLength(1) = previousDonLength(0)
+                previousDonLength(0) = previous.SameTypeCount
+            End If
+        Else
+            SameTypeCount = previous.SameTypeCount + 1
+        End If
+        Return Math.Min(returnVal, MAX_SWAP_BONUS)
     End Function
     Private Function RhythmChangeAddition(ByRef previous As HitObject) As Double
         If previous.timeElapsed > 0 Then

@@ -25,6 +25,7 @@ Partial Class dlgMapData
         Dim ChartArea1 As System.Windows.Forms.DataVisualization.Charting.ChartArea = New System.Windows.Forms.DataVisualization.Charting.ChartArea()
         Dim ChartArea2 As System.Windows.Forms.DataVisualization.Charting.ChartArea = New System.Windows.Forms.DataVisualization.Charting.ChartArea()
         Dim ChartArea3 As System.Windows.Forms.DataVisualization.Charting.ChartArea = New System.Windows.Forms.DataVisualization.Charting.ChartArea()
+        Dim ChartArea4 As System.Windows.Forms.DataVisualization.Charting.ChartArea = New System.Windows.Forms.DataVisualization.Charting.ChartArea()
         Dim Legend1 As System.Windows.Forms.DataVisualization.Charting.Legend = New System.Windows.Forms.DataVisualization.Charting.Legend()
         Dim Series1 As System.Windows.Forms.DataVisualization.Charting.Series = New System.Windows.Forms.DataVisualization.Charting.Series()
         Me.chtConsistency = New System.Windows.Forms.DataVisualization.Charting.Chart()
@@ -42,10 +43,14 @@ Partial Class dlgMapData
         ChartArea2.AxisY.Minimum = 0R
         ChartArea2.Name = "Consistency"
         ChartArea3.AxisX.Minimum = 0R
-        ChartArea3.Name = "Technicality"
+        ChartArea3.Name = "Rhythm"
+        ChartArea3.Visible = False
+        ChartArea4.Name = "Color"
+        ChartArea4.Visible = False
         Me.chtConsistency.ChartAreas.Add(ChartArea1)
         Me.chtConsistency.ChartAreas.Add(ChartArea2)
         Me.chtConsistency.ChartAreas.Add(ChartArea3)
+        Me.chtConsistency.ChartAreas.Add(ChartArea4)
         Legend1.Name = "Legend1"
         Me.chtConsistency.Legends.Add(Legend1)
         Me.chtConsistency.Location = New System.Drawing.Point(12, 12)
@@ -56,13 +61,13 @@ Partial Class dlgMapData
         Series1.Name = "Series1"
         Series1.YValuesPerPoint = 2
         Me.chtConsistency.Series.Add(Series1)
-        Me.chtConsistency.Size = New System.Drawing.Size(931, 678)
+        Me.chtConsistency.Size = New System.Drawing.Size(931, 522)
         Me.chtConsistency.TabIndex = 1
         '
         'OK_Button
         '
         Me.OK_Button.Anchor = System.Windows.Forms.AnchorStyles.Bottom
-        Me.OK_Button.Location = New System.Drawing.Point(444, 696)
+        Me.OK_Button.Location = New System.Drawing.Point(444, 540)
         Me.OK_Button.Name = "OK_Button"
         Me.OK_Button.Size = New System.Drawing.Size(67, 23)
         Me.OK_Button.TabIndex = 0
@@ -73,7 +78,7 @@ Partial Class dlgMapData
         Me.AcceptButton = Me.OK_Button
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-        Me.ClientSize = New System.Drawing.Size(955, 731)
+        Me.ClientSize = New System.Drawing.Size(955, 575)
         Me.Controls.Add(Me.OK_Button)
         Me.Controls.Add(Me.chtConsistency)
         Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog

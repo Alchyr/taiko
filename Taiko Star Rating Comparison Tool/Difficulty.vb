@@ -72,7 +72,9 @@
 
         For Each hit As HitObject In hitobjects
             While (hit.Pos > intervalEndTime)
-                highestStrains.Add(maximumStrain)
+                If (maximumStrain > 0) Then
+                    highestStrains.Add(maximumStrain)
+                End If
 
                 maximumStrain = 0
                 'increase interval end time until it is past current position

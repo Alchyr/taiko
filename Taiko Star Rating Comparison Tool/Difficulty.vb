@@ -57,33 +57,20 @@
         Dim actualStrainStep As Double = STRAIN_GAP / timerate
 
         Dim highestStrains As List(Of Double) = New List(Of Double)
-        Dim intervalEndTime As Double
-        Dim maximumStrain As Double = 0 'keep track of highest strain in interval
+        Dim sortedObjects As List(Of HitObject) = New List(Of HitObject)(hitobjects)
 
-        Dim previous As HitObject = Nothing
+        Try
+            sortedObjects.Sort(Function(a As HitObject, b As HitObject) b.Strain - a.Strain)
+        Catch ex As Exception
 
-        If (hitobjects.Count > 0) Then
-            Dim length As Double = (hitobjects.Last().ObjectPos - hitobjects.First().ObjectPos) / timerate
-            If (actualStrainStep * 100 > length) Then
-                actualStrainStep = Math.Max(length / 100, 10) 'to ensure very short maps still get proper star rating; minimum gap is 10
+        End Try
+
+        For Each hit As HitObject In sortedObjects 'should be sorted from highest strain to lowest strain
+            If (hit.Valid) Then
+                hit.Valid = False
+                highestStrains.Add(hit.Strain)
+                ExcludeNear(hit, actualStrainStep)
             End If
-            intervalEndTime = hitobjects(0).ObjectPos + actualStrainStep
-        End If
-
-        For Each hit As HitObject In hitobjects
-            While (hit.Pos > intervalEndTime)
-                If (maximumStrain > 0) Then
-                    highestStrains.Add(maximumStrain)
-                End If
-
-                maximumStrain = 0
-                'increase interval end time until it is past current position
-                intervalEndTime += actualStrainStep
-            End While
-
-            maximumStrain = Math.Max(hit.Strain, maximumStrain)
-
-            previous = hit
         Next
 
         'now build weighted sum from these highest points
@@ -100,6 +87,26 @@
 
         Return Difficulty
     End Function
+    Private Sub ExcludeNear(ByRef hit As HitObject, ByVal gap As Double)
+        Dim nextObj As HitObject = hit
+        While (Not IsNothing(nextObj.previousObject))
+            If (nextObj.previousObject.Pos > hit.Pos - gap) Then
+                nextObj.previousObject.Valid = False
+                nextObj = nextObj.previousObject
+            Else
+                nextObj.previousObject = Nothing
+            End If
+        End While
+        nextObj = hit
+        While (Not IsNothing(nextObj.nextObject))
+            If (nextObj.nextObject.Pos < hit.Pos + gap) Then
+                nextObj.nextObject.Valid = False
+                nextObj = nextObj.nextObject
+            Else
+                nextObj.nextObject = Nothing
+            End If
+        End While
+    End Sub
     Private Function OldCalculateDifficulty(ByRef hitobjects As List(Of HitObject), ByVal timerate As Double) As Double
         Dim actualStrainStep As Double = old_strain_step * timerate
 

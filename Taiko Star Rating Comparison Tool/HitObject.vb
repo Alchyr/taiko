@@ -7,6 +7,8 @@
     Private type As Integer '1 circle, 2 slider, 8 spinner
     Public Property IsKat As Boolean 'true red, false blue
 
+    Public Property nextObject As HitObject = Nothing
+    Public Property previousObject As HitObject = Nothing
 
     'for new
     Public Property Strain As Double = 0
@@ -14,6 +16,8 @@
     Public Property Consistency As Double = 0
     Public Property Rhythm As Double = 0
     Public Property Color As Double = 0
+
+    Public Property Valid As Boolean = True 'For calculating difficulty.
 
     Private streamBonus As Double = 0
 
@@ -95,12 +99,13 @@
         If (IsNothing(other)) Then
             Return 1
         End If
-
         Return Me.ObjectPos - other.ObjectPos
     End Function
 
     Public Function calculateStrain(ByRef previous As HitObject, ByVal timerate As Double) As Boolean
         timeElapsed = (ObjectPos - previous.ObjectPos) / timerate
+
+        Valid = True
 
         If (timeElapsed = 0) Then
             Return False
@@ -112,7 +117,9 @@
             Return True 'strain "successfully calculated" as 1, so make this the previous object
         End If
 
-
+        'form a linkedlist of hitobjects for ease of exclusion later
+        previousObject = previous
+        previous.nextObject = Me
 
         'OLD STRAIN__________________________________________________________
         Dim oldaddition As Double = 1

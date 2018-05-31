@@ -6,7 +6,7 @@
     'the closer to 1 decay weight is, the less effect bursts have
     'After adjusting these, star scaling factor must also be adjusted appropriately
     Public Const DECAY_WEIGHT As Double = 0.9
-    Public Const STRAIN_GAP As Double = 400.0
+    Public Const STRAIN_GAP As Double = 200.0 '200 on either side '400.0
 
     'base strain
     Public Const SPEED_DECAY_ONE As Double = 681.5 '670 

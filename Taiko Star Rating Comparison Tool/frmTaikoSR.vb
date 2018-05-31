@@ -174,7 +174,7 @@
                             difficultyCount += 1 'one taiko map found
                         End If
                     Catch ex As Exception
-                        'error reading that map
+                        'error reading that map, this generally occurs when the .osu file is completely empty.
                     End Try
                 Next
             Else
@@ -211,14 +211,16 @@
         While Not (currentLine.StartsWith("Mode:") Or difficultyReader.EndOfStream)
             currentLine = difficultyReader.ReadLine()
         End While
-        currentLine = currentLine.Substring(currentLine.IndexOf(":") + 1).Trim("     ".ToCharArray())
-        Dim mode As Integer = Integer.Parse(currentLine) 'ms position
-        If (mode = 1) Then 'if not taiko no need to read rest of file
-            ReadDifficulty.isTaiko = True
-            Dim hitobjects As List(Of HitObject) = ReadHitObjects(ReadDifficulty, difficultyReader)
-            ReadDifficulty.CalcSR(hitobjects)
-            If (calcDT) Then
-                ReadDifficulty.CalcDT(hitobjects)
+        If Not (difficultyReader.EndOfStream) Then 'end of stream, this is a map that doesn't even have mode. Definitely not taiko.
+            currentLine = currentLine.Substring(currentLine.IndexOf(":") + 1).Trim("     ".ToCharArray())
+            Dim mode As Integer = Integer.Parse(currentLine) 'ms position
+            If (mode = 1) Then 'if not taiko no need to read rest of file
+                ReadDifficulty.IsTaiko = True
+                Dim hitobjects As List(Of HitObject) = ReadHitObjects(ReadDifficulty, difficultyReader)
+                ReadDifficulty.CalcSR(hitobjects)
+                If (calcDT) Then
+                    ReadDifficulty.CalcDT(hitobjects)
+                End If
             End If
         End If
 
@@ -234,20 +236,24 @@
         End While
 
         'current line - [HitObjects]
-        currentLine = r.ReadLine().Trim("     ".ToCharArray())
-        While Not (r.EndOfStream Or currentLine.Length = 0)
-            'hitobjects - x,y,ms,a,b,hitsound:hitsound:hitsound:hitsound:
-            hitobjects.Add(New HitObject(currentLine))
-
+        If (Not r.EndOfStream) Then
             currentLine = r.ReadLine().Trim("     ".ToCharArray())
-        End While
-        If (currentLine.Length > 0) Then
-            hitobjects.Add(New HitObject(currentLine))
+            While Not (r.EndOfStream Or currentLine.Length = 0)
+                'hitobjects - x,y,ms,a,b,hitsound:hitsound:hitsound:hitsound:
+                hitobjects.Add(New HitObject(currentLine))
+
+                currentLine = r.ReadLine().Trim("     ".ToCharArray())
+            End While
+            If (currentLine.Length > 0) Then
+                hitobjects.Add(New HitObject(currentLine))
+            End If
+
+            diff.ObjectCount = hitobjects.Count
+
+            hitobjects.Sort()
+        Else
+            diff.ObjectCount = 0
         End If
-
-        diff.ObjectCount = hitobjects.Count
-
-        hitobjects.Sort()
 
         Return hitobjects
     End Function

@@ -6,10 +6,12 @@
     Public Property IsTaiko As Boolean
 
     Public Property ObjectCount As Integer = 0
+    Public Property EffectiveObjectCount As Double = 0
     Public Property OldStarRating As Double = 0
     Public Property NewStarRating As Double = 0
     Public Property OldStarRatingDT As Double = 0
     Public Property NewStarRatingDT As Double = 0
+
 
     Public Sub New(ByVal fileName As String)
         p_difficulty = fileName
@@ -55,38 +57,47 @@
 
     Private Function CalculateDifficulty(ByRef hitobjects As List(Of HitObject), ByVal timerate As Double) As Double
         Dim actualStrainStep As Double = STRAIN_GAP / timerate
-
-        Dim highestStrains As List(Of Double) = New List(Of Double)
-        Dim sortedObjects As List(Of HitObject) = New List(Of HitObject)(hitobjects)
-
-        Try
-            sortedObjects.Sort(Function(a As HitObject, b As HitObject) b.Strain - a.Strain)
-        Catch ex As Exception
-
-        End Try
-
-        For Each hit As HitObject In sortedObjects 'should be sorted from highest strain to lowest strain
-            If (hit.Valid) Then
-                hit.Valid = False
-                highestStrains.Add(hit.Strain)
-                ExcludeNear(hit, actualStrainStep)
-            End If
-        Next
-
-        'now build weighted sum from these highest points
-
         Dim Difficulty As Double = 0
-        Dim weight As Double = 1.0
-        highestStrains.Sort()
-        highestStrains.Reverse()
 
-        For Each strain As Double In highestStrains
-            Difficulty += weight * strain
-            weight *= DECAY_WEIGHT
-        Next
+        If (hitobjects.Count > 0) Then
+            Dim highestStrains As List(Of Double) = New List(Of Double)
+            Dim sortedObjects As List(Of HitObject) = New List(Of HitObject)(hitobjects)
 
+            Try
+                sortedObjects.Sort(Function(a, b) If(b.Strain - a.Strain > 0, 1, If(b.Strain - a.Strain < 0, -1, 0)))
+            Catch ex As Exception
+
+            End Try ' NOT SORTING CORRECTLY FIX
+
+            Dim MaxStrain As Double = sortedObjects(0).Strain
+            EffectiveObjectCount = 0
+
+            For Each hit As HitObject In sortedObjects 'should be sorted from highest strain to lowest strain
+                If (hit.Valid) Then
+                    hit.Valid = False
+                    highestStrains.Add(hit.Strain)
+                    ExcludeNear(hit, actualStrainStep)
+                End If
+                'Find effective object count, regardless of validity or not
+                Dim objectWeight As Double = Math.Pow(hit.Strain / MaxStrain, EFFECTIVE_OBJECT_DECAY_SCALE) '0.05 / (-(hit.Strain / MaxStrain) + 1.05))
+                EffectiveObjectCount += Math.Min(1, objectWeight)
+            Next
+
+            'now build weighted sum from these highest points
+
+            Dim weight As Double = 1.0
+            highestStrains.Sort()
+            highestStrains.Reverse()
+
+            For Each strain As Double In highestStrains
+                Difficulty += weight * strain
+                weight *= DECAY_WEIGHT
+            Next
+
+        End If
         Return Difficulty
     End Function
+
     Private Sub ExcludeNear(ByRef hit As HitObject, ByVal gap As Double)
         Dim nextObj As HitObject = hit
         While (Not IsNothing(nextObj.previousObject))

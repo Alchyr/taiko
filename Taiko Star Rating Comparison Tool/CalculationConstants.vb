@@ -12,8 +12,8 @@
 
     'base strain
     Public Const BASE_SPEED_VALUE As Double = 0.8
-    Public Const SPEED_DECAY_ONE As Double = 700 '670
-    Public Const SPEED_DECAY_TWO As Double = 700 '670 
+    Public Const SPEED_DECAY_ONE As Double = 714 '700
+    Public Const SPEED_DECAY_TWO As Double = 715 '700
     Public Const SPEED_DECAY_OFFSET As Double = 0 '0.025
 
     Public Const SPEED_DESCALE As Double = -0.125 'affects how much value very high bpm (<50 ms gap) notes have

@@ -314,24 +314,24 @@
                 .ChartType = DataVisualization.Charting.SeriesChartType.Line,
                 .XValueType = DataVisualization.Charting.ChartValueType.Double
             }
-            Dim color As DataVisualization.Charting.Series = New DataVisualization.Charting.Series("Color") With {
+        Dim strain As DataVisualization.Charting.Series = New DataVisualization.Charting.Series("Final Strain") With {
                 .ChartType = DataVisualization.Charting.SeriesChartType.Line,
                 .XValueType = DataVisualization.Charting.ChartValueType.Double
             }
 
-            speed.Points.AddXY(0, 0)
+        speed.Points.AddXY(0, 0)
             consistency.Points.AddXY(0, 0)
             rhythm.Points.AddXY(0, 0)
-            color.Points.AddXY(0, 0)
-            For Each hit As HitObject In hitobjects
+        strain.Points.AddXY(0, 0)
+        For Each hit As HitObject In hitobjects
                 speed.Points.AddXY(hit.ObjectPos, hit.Speed)
                 consistency.Points.AddXY(hit.ObjectPos, hit.Consistency)
                 rhythm.Points.AddXY(hit.ObjectPos, hit.Rhythm)
-                color.Points.AddXY(hit.ObjectPos, hit.Color)
-            Next
+            strain.Points.AddXY(hit.ObjectPos, hit.Strain)
+        Next
 
 
-            dlgMapData.ShowDialog(diff.DifficultyName, hitobjects.Last.ObjectPos, {speed, consistency, rhythm, color})
+        dlgMapData.ShowDialog(diff.DifficultyName, hitobjects.Last.ObjectPos, {speed, consistency, rhythm, strain})
         'Else
         'MsgBox("You can double-click to view map details once all maps have been loaded.", , "hold up there pardner")
         'End If

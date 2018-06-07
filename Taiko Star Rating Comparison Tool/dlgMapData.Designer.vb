@@ -45,7 +45,7 @@ Partial Class dlgMapData
         ChartArea3.AxisX.Minimum = 0R
         ChartArea3.Name = "Rhythm"
         ChartArea3.Visible = False
-        ChartArea4.Name = "Color"
+        ChartArea4.Name = "Final Strain"
         ChartArea4.Visible = False
         Me.chtConsistency.ChartAreas.Add(ChartArea1)
         Me.chtConsistency.ChartAreas.Add(ChartArea2)

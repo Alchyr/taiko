@@ -18,7 +18,7 @@ Public Class dlgMapData
         data(0).ChartArea = "Speed"
         data(1).ChartArea = "Consistency"
         data(2).ChartArea = "Rhythm"
-        data(3).ChartArea = "Color"
+        data(3).ChartArea = "Final Strain"
 
         For Each s As Series In data
             chtConsistency.Series.Add(s)

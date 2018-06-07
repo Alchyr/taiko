@@ -153,7 +153,8 @@
         End If
 
         If (timeElapsed < 50) Then
-            additionFactor = SPEED_DESCALE * Math.Log10(-(timeElapsed - SPEED_DESCALE_OFFSET_1)) + SPEED_DESCALE_OFFSET_2
+            'additionFactor = SPEED_DESCALE * Math.Log10(-(timeElapsed - SPEED_DESCALE_OFFSET_1)) + SPEED_DESCALE_OFFSET_2
+            additionFactor = 0.5 + (0.5 * timeElapsed / 50.0) 'scale from 0.5 to 1
         End If
 
         Speed = previous.Speed * decay + ((addition + colorAddition) * additionFactor)

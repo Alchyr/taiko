@@ -1,4 +1,9 @@
-﻿These are the "maximum pp" values, as in a fullcombo SS.
+﻿'CURRENT TASK -
+Improve implementation of technicality
+
+
+
+These are the "maximum pp" values, as in a fullcombo SS.
 
 Let's say 10 star is the "normal limit" of what people can play, while 9 star is ridiculous, 8 star is extremely hard.
 

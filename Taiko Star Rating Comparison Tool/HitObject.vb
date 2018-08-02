@@ -17,6 +17,8 @@
     Public Property Rhythm As Double = 0
     Public Property Color As Double = 0
 
+    Public Property PPWeight As Double = 0
+
     Public Property Valid As Boolean = True 'For calculating difficulty.
 
     Private streamBonus As Double = 0
@@ -139,64 +141,71 @@
 
         'NEW STRAIN______________________________________________________________________
 
-        Dim decay As Double = Math.Min(1, SPEED_DECAY_ONE / (timeElapsed + SPEED_DECAY_TWO)) + SPEED_DECAY_OFFSET
-        Dim addition As Double = BASE_SPEED_VALUE
-        Dim colorAddition As Double = 0
+        Dim change As Double = (previous.timeElapsed / timeElapsed)
+        Dim decay As Double
         Dim additionFactor As Double = 1
 
         'color
-        colorAddition = TypeChangeAddition(previous)
+        Dim colorAddition As Double = TypeChangeAddition(previous)
         Color = colorAddition
 
         If (timeElapsed > 1000) Then
             additionFactor = 0
         End If
 
-        If (timeElapsed < 50) Then
-            'additionFactor = SPEED_DESCALE * Math.Log10(-(timeElapsed - SPEED_DESCALE_OFFSET_1)) + SPEED_DESCALE_OFFSET_2
-            additionFactor = 0.5 + (0.5 * timeElapsed / 50.0) 'scale from 0.5 to 1
+        'stream bonus
+        decay = change - 1
+        decay = Math.Max(0, (decay * -decay) * STREAM_BONUS_DECAY_SCALE + STREAM_BONUS_DECAY_BASE)
+
+        streamBonus = previous.streamBonus
+
+        If (change > 0.6 And change < 1.6) Then
+            streamBonus += STREAM_BONUS
         End If
 
-        Speed = previous.Speed * decay + ((addition + colorAddition) * additionFactor)
+        streamBonus *= decay
+
+
+        'Speed
+        'decay = Math.Min(1, SPEED_DECAY_ONE / (timeElapsed + SPEED_DECAY_TWO)) + SPEED_DECAY_OFFSET
+        decay = Math.Max(0, 0.99 - timeElapsed / 1000)
+        Dim addition As Double = BASE_SPEED_VALUE
+
+        'If (timeElapsed < 50) Then
+        'additionFactor = SPEED_DESCALE * Math.Log10(-(timeElapsed - SPEED_DESCALE_OFFSET_1)) + SPEED_DESCALE_OFFSET_2
+        'additionFactor = 0.4 + (0.6 * timeElapsed / 50.0) 'scale from 0.4 to 1
+        'End If
+
+        Speed = previous.Speed * decay + ((addition + colorAddition + streamBonus) * additionFactor)
 
         'consistency
-        addition = (1 - previous.Consistency) * STAMINA_GROWTH
-        If (previous.timeElapsed > 0) Then
-            decay = Math.Pow(STAMINA_DECAY_BASE, timeElapsed / (previous.timeElapsed * CONSISTENCY_SCALE))
-        Else
-            decay = 0
-        End If
+        'addition = (1 - previous.Consistency) * STAMINA_GROWTH
+        'If (previous.timeElapsed > 0) Then
+        '    decay = Math.Pow(STAMINA_DECAY_BASE, timeElapsed / (previous.timeElapsed * CONSISTENCY_SCALE))
+        'Else
+        '    decay = 0
+        'End If
 
-        Consistency = (previous.Consistency * decay) + addition
+        'Consistency = (previous.Consistency * decay) + addition
 
         'technicality
         'rhythm
         decay = TECHNICALITY_DECAY_BASE
-        If (timeElapsed > 600) Then
+
+        If (timeElapsed > 1000) Then
             decay = 0
+            'End If
         ElseIf (timeElapsed > 100) Then
             decay *= 1 - (timeElapsed - 100) / 500
         End If
-        addition = 0
 
-        addition += RhythmChangeAddition(previous)
+        addition = RhythmChangeAddition(previous)
 
         Rhythm = previous.Rhythm * decay + addition
 
-        'stream bonus
-        Dim change As Double = (previous.timeElapsed / timeElapsed)
-        decay = change - 1
-        decay = Math.Max(0, (decay * -decay) * STREAM_BONUS_DECAY_SCALE + STREAM_BONUS_DECAY_BASE)
-
-        streamBonus = previous.streamBonus * decay
-
-        If (change > 0.8 And change < 1.2) Then
-            streamBonus += STREAM_BONUS
-        End If
-
         'totalStrain
-        'Speed *= Math.Min((1 - (3 / (Rhythm - 6))) - 0.5, TECHNICALITY_BONUS_CAP)
-        Strain = (Speed + streamBonus) * Math.Min((1 - (2.5 / (Rhythm - 5))) - 0.5, TECHNICALITY_BONUS_CAP) * Consistency * STAMINA_SCALING_FACTOR
+        'This formula prevents technicality from becoming exponentially more effective as speed increases.
+        Strain = Speed * Math.Min(0.5 - (3 / (Rhythm - 6)), TECHNICALITY_BONUS_CAP) * (Math.Pow(0.9, Speed) + 0.75)
 
         Return True
     End Function
@@ -211,7 +220,7 @@
 
             If (previous.IsKat()) Then 'previous is kat mono
                 'returnVal = BONUS_SCALE * Math.Log(previous.SameTypeCount + SWAP_LOG_OFFSET, SWAP_LOG_BASE)
-                returnVal = -(1 / (previous.SameTypeCount + 2)) + BASE_SWAP_BONUS
+                returnVal = BASE_SWAP_BONUS - (1 / (previous.SameTypeCount + 1))
 
                 'If (previous.SameTypeCount Mod 2 = 0 And previousKatLength(0) Mod 2 = 0) Then
                 '    returnMultipler *= EVEN_LOSS
@@ -222,15 +231,14 @@
                 End If
 
 
-                If (previousKatLength(0) = previous.SameTypeCount) Then
-                    returnMultipler *= REPEAT_LOSS
-                End If
-                If (previousKatLength(1) = previous.SameTypeCount) Then
-                    returnMultipler *= REPEAT_LOSS
+                If (previousKatLength(0) = previous.SameTypeCount And previousKatLength(1) = previous.SameTypeCount) Then
+                    returnMultipler *= SECOND_REPEAT_LOSS
+                ElseIf (previousKatLength(1) = previous.SameTypeCount Xor previousKatLength(1) = previous.SameTypeCount) Then
+                    returnMultipler *= FIRST_REPEAT_LOSS
                 End If
             Else 'previous is don mono
                 'returnVal = BONUS_SCALE * Math.Log(previous.SameTypeCount + SWAP_LOG_OFFSET, SWAP_LOG_BASE)
-                returnVal = -(1 / (previous.SameTypeCount + 2)) + BASE_SWAP_BONUS
+                returnVal = -(1 / (previous.SameTypeCount + 1)) + BASE_SWAP_BONUS
 
                 'If (previous.SameTypeCount Mod 2 = 0 And previousDonLength(0) Mod 2 = 0) Then
                 '    returnMultipler *= EVEN_LOSS
@@ -240,11 +248,10 @@
                     returnMultipler *= EVEN_LOSS
                 End If
 
-                If (previousDonLength(0) = previous.SameTypeCount) Then
-                    returnMultipler *= REPEAT_LOSS
-                End If
-                If (previousDonLength(1) = previous.SameTypeCount) Then
-                    returnMultipler *= REPEAT_LOSS
+                If (previousDonLength(0) = previous.SameTypeCount And previousDonLength(1) = previous.SameTypeCount) Then
+                    returnMultipler *= SECOND_REPEAT_LOSS
+                ElseIf (previousDonLength(1) = previous.SameTypeCount Xor previousDonLength(1) = previous.SameTypeCount) Then
+                    returnMultipler *= FIRST_REPEAT_LOSS
                 End If
             End If
 
@@ -258,7 +265,7 @@
         Else
             SameTypeCount = previous.SameTypeCount + 1
         End If
-        Return Math.Min(returnVal, MAX_SWAP_BONUS) * returnMultipler
+        Return returnVal * returnMultipler
     End Function
     'Private Function TypeChangeAdditionTest(ByRef previous As HitObject) As Double
     '    Dim returnVal As Double = 0

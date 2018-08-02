@@ -80,6 +80,7 @@
                 End If
                 'Find effective object count, regardless of validity or not
                 Dim objectWeight As Double = Math.Pow(hit.Strain / MaxStrain, EFFECTIVE_OBJECT_DECAY_SCALE) '0.05 / (-(hit.Strain / MaxStrain) + 1.05))
+                hit.PPWeight = objectWeight
                 EffectiveObjectCount += Math.Min(1, objectWeight)
             Next
 

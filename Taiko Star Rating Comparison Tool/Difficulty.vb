@@ -5,8 +5,11 @@
 
     Public Property IsTaiko As Boolean
 
+    Public Property HitWindow As Double = 33.5
+
     Public Property ObjectCount As Integer = 0
     Public Property EffectiveObjectCount As Double = 0
+    Public Property PPMax As Double = 0
     Public Property OldStarRating As Double = 0
     Public Property NewStarRating As Double = 0
     Public Property OldStarRatingDT As Double = 0
@@ -34,6 +37,7 @@
             CalculateStrains(hitobjects, 1)
             OldStarRating = OldCalculateDifficulty(hitobjects, 1) * old_star_scaling_factor
             NewStarRating = CalculateDifficulty(hitobjects, 1) * STAR_SCALING_FACTOR
+            PPMax = ComputeStrainValue() * ComputeAccuracyValue()
         End If
     End Sub
     Public Sub CalcDT(ByRef hitobjects As List(Of HitObject))
@@ -160,5 +164,38 @@
         Next
 
         Return Difficulty
+    End Function
+
+
+    'for pp
+    Private Function ComputeStrainValue() As Double
+        Dim strainValue As Double = Math.Pow(NewStarRating, 2) * 7.5 + 1 '1 just makes very low star rating maps worth slightly more
+        'the 1 may not be necessary
+
+        Dim lengthMultiplier As Double = 1.5 - (250 / (EffectiveObjectCount / 4 + 250))
+
+        'effect of misses scales with length
+        Dim missMultiplier As Double = Math.Max(Math.Min(((lengthMultiplier - 1) / 12) + 0.975, 0.99), 0.965)
+        'missMultiplier scales from .965 at ~600 or less effective objects to .99 at ~2000 or more
+        missMultiplier = Math.Pow(missMultiplier, 0) 'exponent is normally miss count, but for max just 0
+
+        'next would be combo multipler; i think this can stay same as current
+        'Dim comboMultiplier as Double = Math.Min(Math.Pow(max combo achieved, 0.5) / Math.Pow(map max combo, 0.5), 1.0)
+
+        strainValue *= lengthMultiplier
+        strainValue *= missMultiplier
+        'strainValue *= comboMultiplier
+
+        Return strainValue
+    End Function
+    Private Function ComputeAccuracyValue() As Double 'return a multiplier, based on score acc
+        Dim testAcc As Double = 1 '100% acc, assuming acc is based 0-1
+
+        'for hitwindow, min for 300 is 13.333 ms (od10 dt, or od7hrdt)
+        'maximum is 66.66667 ms (od0 ht)
+        Dim accMultiplier As Double = (30 / (HitWindow + 5) - 1) / 4 + 1
+
+        'do some tweaking later on this exponent, affects how quickly acc falls off
+        Return Math.Pow(testAcc, 2) * accMultiplier
     End Function
 End Class

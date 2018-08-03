@@ -1,46 +1,21 @@
 ﻿'CURRENT TASK -
-Improve implementation of technicality
+streams might need some kind of buff...?
+
+
+1000 objects should be baseline for a map.
+If a map has an effective object count of 1000, it is a normal map of that star rating.
+If a map has under 1000, it should be worth less than a normal map of that sr.
+Over 1000, it should be worth slightly more.
+At 2000, increase by .5 stars?
+at 500, decrease by .5 stars?
+
+Important to note, the loss of pp from missing depends on the weight of the missed objects.
+First, have x% or something like that kind of loss for a standard miss. Multiply by object weight.
+Then, adjust based on effective object count. For under 1000, increases, for over 1000, decreases.
 
 
 
-These are the "maximum pp" values, as in a fullcombo SS.
-
-Let's say 10 star is the "normal limit" of what people can play, while 9 star is ridiculous, 8 star is extremely hard.
-
-Let's treat 8 star as the baseline for a high difficulty play, with a base value of 600 pp at 8 stars.
-
-10 - 715
-+140
-9 - 575
-+125
-8 - 450
-+110
-7 - 340
-+95
-6 - 245
-+80
-5 - 175
-+65
-4 - 110
-+50
-3 - 60
-+35
-2 - 25
-+20
-1 - 5
-+5
-0 - 0
-
-Afterwards, a bonus is applied based on Effective Object count
-250 objects = 1/4 way to next star rating value
-500 objects = another 1/4
-1000 objects = another 1/4
-2000 objects = another 1/4
-4000 objects = another 1/4
-8000 objects = another 1/4?
-
-It probably needs to scale a bit less, but this is just the general idea.
-This reduces the amount of pp maps with only short difficulty spikes and the rest of the map being relatively easy will give.
-
-
-In addition, of course, these are values with OD 6. or 7? Idk. They will be different with different OD.
+Notes on current pp calculation:
+Object count descales a bit too hard for maps with low density. I think. Maybe could buff slightly.
+Numbers for star rating are relatively comparable to current, but do not compare pp to current, they're basically 
+completely different.

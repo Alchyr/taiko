@@ -16,6 +16,5 @@ Then, adjust based on effective object count. For under 1000, increases, for ove
 
 
 Notes on current pp calculation:
-Object count descales a bit too hard for maps with low density. I think. Maybe could buff slightly.
 Numbers for star rating are relatively comparable to current, but do not compare pp to current, they're basically 
 completely different.

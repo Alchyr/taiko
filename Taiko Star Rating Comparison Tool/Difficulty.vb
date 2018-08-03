@@ -172,11 +172,18 @@
         Dim strainValue As Double = Math.Pow(NewStarRating, 2) * 7.5 + 1 '1 just makes very low star rating maps worth slightly more
         'the 1 may not be necessary
 
-        Dim lengthMultiplier As Double = 1.5 - (250 / (EffectiveObjectCount / 4 + 250))
+        Dim lengthMultiplier As Double
+        If (EffectiveObjectCount > 1500) Then
+            lengthMultiplier = 1.5 - (250 / (EffectiveObjectCount / 4 + 250))
+        ElseIf EffectiveObjectCount > 0 Then
+            lengthMultiplier = 0.8 + 0.1 * (EffectiveObjectCount / 500)
+        Else
+            lengthMultiplier = 0.8
+        End If
 
         'effect of misses scales with length
         Dim missMultiplier As Double = Math.Max(Math.Min(((lengthMultiplier - 1) / 12) + 0.975, 0.99), 0.965)
-        'missMultiplier scales from .965 at ~600 or less effective objects to .99 at ~2000 or more
+        'missMultiplier scales from .965 at ~400 or less effective objects to .99 at ~2000 or more
         missMultiplier = Math.Pow(missMultiplier, 0) 'exponent is normally miss count, but for max just 0
 
         'next would be combo multipler; i think this can stay same as current

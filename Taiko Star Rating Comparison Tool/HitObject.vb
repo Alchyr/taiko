@@ -165,9 +165,9 @@
 
         If (timeElapsed < 50) Then
             'additionFactor = SPEED_DESCALE * Math.Log10(-(timeElapsed - SPEED_DESCALE_OFFSET_1)) + SPEED_DESCALE_OFFSET_2
-            addition *= 0.4 + (0.6 * timeElapsed / 50.0) 'scale from 0.5 to 1
-            colorAddition *= 0.75 + (0.25 * timeElapsed / 50.0)
-            rhythmBonus *= 0.2 + (0.8 * timeElapsed / 50.0)
+            addition *= 0.5 + (0.5 * timeElapsed / 50.0) 'scale from 0.5 to 1
+            colorAddition *= 0.65 + (0.35 * timeElapsed / 50.0)
+            rhythmBonus *= 0.1 + (0.9 * timeElapsed / 50.0) 'extreme devalue as speed increases
         End If
 
         Strain = previous.Strain * decay + ((addition + colorAddition + rhythmBonus) * additionFactor)

@@ -210,10 +210,9 @@
         previousDonLength = previous.previousDonLength
         previousKatLength = previous.previousKatLength
         If (IsKat() Xor previous.IsKat()) Then 'color is different from previous
+            returnVal = BASE_SWAP_BONUS - (SWAP_SCALE / (previous.SameTypeCount + 1))
 
             If (previous.IsKat()) Then 'previous is kat mono
-                'returnVal = BONUS_SCALE * Math.Log(previous.SameTypeCount + SWAP_LOG_OFFSET, SWAP_LOG_BASE)
-                returnVal = BASE_SWAP_BONUS - (1.8 / (previous.SameTypeCount + 1))
 
                 'If (previous.SameTypeCount Mod 2 = 0 And previousKatLength(0) Mod 2 = 0) Then
                 '    returnMultipler *= EVEN_LOSS
@@ -230,8 +229,6 @@
                     returnMultipler *= FIRST_REPEAT_LOSS
                 End If
             Else 'previous is don mono
-                'returnVal = BONUS_SCALE * Math.Log(previous.SameTypeCount + SWAP_LOG_OFFSET, SWAP_LOG_BASE)
-                returnVal = -(1 / (previous.SameTypeCount + 1)) + BASE_SWAP_BONUS
 
                 'If (previous.SameTypeCount Mod 2 = 0 And previousDonLength(0) Mod 2 = 0) Then
                 '    returnMultipler *= EVEN_LOSS

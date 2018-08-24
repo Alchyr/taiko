@@ -213,11 +213,6 @@
             returnVal = BASE_SWAP_BONUS - (SWAP_SCALE / (previous.SameTypeCount + 1))
 
             If (previous.IsKat()) Then 'previous is kat mono
-
-                'If (previous.SameTypeCount Mod 2 = 0 And previousKatLength(0) Mod 2 = 0) Then
-                '    returnMultipler *= EVEN_LOSS
-                'End If
-
                 If (previous.SameTypeCount Mod 2 = previousKatLength(0) Mod 2) Then
                     returnMultipler *= EVEN_LOSS
                 End If
@@ -229,11 +224,6 @@
                     returnMultipler *= FIRST_REPEAT_LOSS
                 End If
             Else 'previous is don mono
-
-                'If (previous.SameTypeCount Mod 2 = 0 And previousDonLength(0) Mod 2 = 0) Then
-                '    returnMultipler *= EVEN_LOSS
-                'End If
-
                 If (previous.SameTypeCount Mod 2 = previousDonLength(0) Mod 2) Then
                     returnMultipler *= EVEN_LOSS
                 End If

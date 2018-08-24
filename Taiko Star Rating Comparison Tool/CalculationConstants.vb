@@ -1,6 +1,6 @@
 ﻿Module CalculationConstants
     'new constants
-    Public Const STAR_SCALING_FACTOR As Double = 0.0435
+    Public Const STAR_SCALING_FACTOR As Double = 0.044
 
     'decay weight closer to one, make sure to lower strain gap to prevent too much of effect on shorter maps
     'the closer to 1 decay weight is, the less effect bursts have
@@ -14,23 +14,23 @@
     Public Const BASE_SPEED_VALUE As Double = 1.0
 
     'color
-    Public Const BASE_SWAP_BONUS As Double = 0.75
+    Public Const BASE_SWAP_BONUS As Double = 0.8
     Public Const SWAP_SCALE As Double = 1
 
-    Public Const FIRST_REPEAT_LOSS As Double = 0.75
-    Public Const SECOND_REPEAT_LOSS As Double = 0.5
-    Public Const EVEN_LOSS As Double = 0.6
+    Public Const SAME_POLARITY_LOSS As Double = 0.7
+    Public Const close_repeat_loss As Double = 0.625
+    Public Const late_repeat_loss As Double = 0.8
 
     'rhythm
     Public Const SPEEDUP_TINY_BONUS As Double = 0.15 '.9
-    Public Const SPEEDUP_SMALL_BONUS As Double = 0.8 'This number increases value of 1/4 -> 1/6 and other weird rhythms.
-    Public Const SPEEDUP_MEDIUM_BONUS As Double = 0.35 'speed doubling - this one affects pretty much every map other than stream maps
-    Public Const SPEEDUP_BIG_BONUS As Double = 0.5 'This number increases value of anything that more than doubles speed. Affects doubles.
+    Public Const SPEEDUP_SMALL_BONUS As Double = 0.7 'This number increases value of 1/4 -> 1/6 and other weird rhythms.
+    Public Const SPEEDUP_MEDIUM_BONUS As Double = 0.4 'speed doubling - this one affects pretty much every map other than stream maps
+    Public Const SPEEDUP_BIG_BONUS As Double = 0.55 'This number increases value of anything that more than doubles speed. Affects doubles.
 
-    Public Const SLOWDOWN_TINY_BONUS As Double = 0.25 '.9, smal speed changes
-    Public Const SLOWDOWN_SMALL_BONUS As Double = 0.4 'in between - this affects (mostly) 1/6 -> 1/4
+    Public Const SLOWDOWN_TINY_BONUS As Double = 0.15 '.9, smal speed changes
+    Public Const SLOWDOWN_SMALL_BONUS As Double = 0.5 'in between - this affects (mostly) 1/6 -> 1/4
     Public Const SLOWDOWN_MEDIUM_BONUS As Double = 0.1 'half speed - this affects pretty much every map
-    Public Const SLOWDOWN_BIG_BONUS As Double = 0.15 'any slowdown that more than halves speed, affects doubles
+    Public Const SLOWDOWN_BIG_BONUS As Double = 0.1 'any slowdown that more than halves speed, affects doubles
 
 
     'for old calculation

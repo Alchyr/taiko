@@ -12,10 +12,6 @@
 
     'for new
     Public Property Strain As Double = 0
-    Public Property Speed As Double = 0
-    Public Property Consistency As Double = 0
-    Public Property Rhythm As Double = 0
-    Public Property Color As Double = 0
 
     Public Property PPWeight As Double = 0
 
@@ -164,10 +160,9 @@
         End If
 
         If (timeElapsed < 50) Then
-            'additionFactor = SPEED_DESCALE * Math.Log10(-(timeElapsed - SPEED_DESCALE_OFFSET_1)) + SPEED_DESCALE_OFFSET_2
             addition *= 0.5 + (0.5 * timeElapsed / 50.0) 'scale from 0.5 to 1
-            colorAddition *= 0.65 + (0.35 * timeElapsed / 50.0)
-            rhythmBonus *= 0.1 + (0.9 * timeElapsed / 50.0) 'extreme devalue as speed increases
+            colorAddition *= 0.7 + (0.3 * timeElapsed / 50.0) 'slight devalue as speed increases
+            rhythmBonus *= timeElapsed / 50.0 'extreme devalue as speed increases
         End If
 
         Strain = previous.Strain * decay + ((addition + colorAddition + rhythmBonus) * additionFactor)
@@ -213,32 +208,31 @@
             returnVal = BASE_SWAP_BONUS - (SWAP_SCALE / (previous.SameTypeCount + 1))
 
             If (previous.IsKat()) Then 'previous is kat mono
-                If (previous.SameTypeCount Mod 2 = previousKatLength(0) Mod 2) Then
-                    returnMultipler *= EVEN_LOSS
-                End If
-
-
-                If (previousKatLength(0) = previous.SameTypeCount And previousKatLength(1) = previous.SameTypeCount) Then
-                    returnMultipler *= SECOND_REPEAT_LOSS
-                ElseIf (previousKatLength(1) = previous.SameTypeCount Xor previousKatLength(1) = previous.SameTypeCount) Then
-                    returnMultipler *= FIRST_REPEAT_LOSS
-                End If
-            Else 'previous is don mono
                 If (previous.SameTypeCount Mod 2 = previousDonLength(0) Mod 2) Then
-                    returnMultipler *= EVEN_LOSS
+                    returnMultipler *= SAME_POLARITY_LOSS
                 End If
 
-                If (previousDonLength(0) = previous.SameTypeCount And previousDonLength(1) = previous.SameTypeCount) Then
-                    returnMultipler *= SECOND_REPEAT_LOSS
-                ElseIf (previousDonLength(1) = previous.SameTypeCount Xor previousDonLength(1) = previous.SameTypeCount) Then
-                    returnMultipler *= FIRST_REPEAT_LOSS
+                If (previousKatLength(0) = previous.SameTypeCount) Then
+                    returnMultipler *= close_repeat_loss
                 End If
-            End If
+                If (previousKatLength(1) = previous.SameTypeCount) Then
+                    returnMultipler *= late_repeat_loss
+                End If
 
-            If (previous.IsKat()) Then 'if the object is a kat, the last chain was kay
                 previousKatLength(1) = previousKatLength(0)
                 previousKatLength(0) = previous.SameTypeCount
-            Else 'otherwise don
+            Else 'previous is don mono
+                If (previous.SameTypeCount Mod 2 = previousKatLength(0) Mod 2) Then
+                    returnMultipler *= SAME_POLARITY_LOSS
+                End If
+
+                If (previousDonLength(0) = previous.SameTypeCount) Then
+                    returnMultipler *= close_repeat_loss
+                End If
+                If (previousDonLength(1) = previous.SameTypeCount) Then
+                    returnMultipler *= late_repeat_loss
+                End If
+
                 previousDonLength(1) = previousDonLength(0)
                 previousDonLength(0) = previous.SameTypeCount
             End If

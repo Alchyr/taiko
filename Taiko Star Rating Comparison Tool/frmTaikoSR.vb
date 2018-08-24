@@ -314,33 +314,27 @@
         'as hitobjects aren't saved because there are WAAAAAY too many of them and doing so would be inefficient, must recalculate
         'If (loadState = 2) Then
         Dim hitobjects As List(Of HitObject) = ReadHitObjects(diff)
-            diff.CalcSR(hitobjects)
+        diff.CalcSR(hitobjects)
 
-            Dim speed As DataVisualization.Charting.Series = New DataVisualization.Charting.Series("Speed") With {
-                .ChartType = DataVisualization.Charting.SeriesChartType.Line,
-                .XValueType = DataVisualization.Charting.ChartValueType.Double
-            }
-            Dim consistency As DataVisualization.Charting.Series = New DataVisualization.Charting.Series("Consistency") With {
-                .ChartType = DataVisualization.Charting.SeriesChartType.Line,
-                .XValueType = DataVisualization.Charting.ChartValueType.Double
-            }
-            Dim rhythm As DataVisualization.Charting.Series = New DataVisualization.Charting.Series("Rhythm") With {
-                .ChartType = DataVisualization.Charting.SeriesChartType.Line,
-                .XValueType = DataVisualization.Charting.ChartValueType.Double
-            }
+        Dim speed As DataVisualization.Charting.Series = New DataVisualization.Charting.Series("Speed") With {
+            .ChartType = DataVisualization.Charting.SeriesChartType.Line,
+            .XValueType = DataVisualization.Charting.ChartValueType.Double
+        }
+        Dim consistency As DataVisualization.Charting.Series = New DataVisualization.Charting.Series("Consistency") With {
+            .ChartType = DataVisualization.Charting.SeriesChartType.Line,
+            .XValueType = DataVisualization.Charting.ChartValueType.Double
+        }
+        Dim rhythm As DataVisualization.Charting.Series = New DataVisualization.Charting.Series("Rhythm") With {
+            .ChartType = DataVisualization.Charting.SeriesChartType.Line,
+            .XValueType = DataVisualization.Charting.ChartValueType.Double
+        }
         Dim strain As DataVisualization.Charting.Series = New DataVisualization.Charting.Series("Final Strain") With {
-                .ChartType = DataVisualization.Charting.SeriesChartType.Line,
-                .XValueType = DataVisualization.Charting.ChartValueType.Double
-            }
+            .ChartType = DataVisualization.Charting.SeriesChartType.Line,
+            .XValueType = DataVisualization.Charting.ChartValueType.Double
+        }
 
-        speed.Points.AddXY(0, 0)
-            consistency.Points.AddXY(0, 0)
-            rhythm.Points.AddXY(0, 0)
         strain.Points.AddXY(0, 0)
         For Each hit As HitObject In hitobjects
-                speed.Points.AddXY(hit.ObjectPos, hit.Speed)
-                consistency.Points.AddXY(hit.ObjectPos, hit.Consistency)
-                rhythm.Points.AddXY(hit.ObjectPos, hit.Rhythm)
             strain.Points.AddXY(hit.ObjectPos, hit.Strain)
         Next
 

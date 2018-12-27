@@ -11,9 +11,7 @@
     Public Property previousObject As HitObject = Nothing
 
     'for new
-    Public Property Strain As Double = 0
-
-    Public Property PPWeight As Double = 0
+    Public Property Strain As Double = 1
 
     Public Property Valid As Boolean = True 'For calculating difficulty.
 
@@ -137,7 +135,7 @@
 
         'NEW STRAIN______________________________________________________________________
 
-        Dim change As Double = (previous.timeElapsed / timeElapsed)
+        'Dim change As Double = (previous.timeElapsed / timeElapsed)
         Dim decay As Double
         Dim additionFactor As Double = 1
 
@@ -159,13 +157,15 @@
             additionFactor = 0
         End If
 
-        If (timeElapsed < 50) Then
-            addition *= 0.5 + (0.5 * timeElapsed / 50.0) 'scale from 0.5 to 1
-            colorAddition *= 0.7 + (0.3 * timeElapsed / 50.0) 'slight devalue as speed increases
-            rhythmBonus *= timeElapsed / 50.0 'extreme devalue as speed increases
+        If (timeElapsed < 65) Then
+            addition *= 0.6 + (0.4 * timeElapsed / 65.0) 'scale from 0.5 to 1
+            'colorAddition *= 0.85 + (0.15 * timeElapsed / 65.0) 'slight devalue as speed increases
+            rhythmBonus *= (timeElapsed / 65.0) 'extreme devalue as speed increases
         End If
 
-        Strain = previous.Strain * decay + ((addition + colorAddition + rhythmBonus) * additionFactor)
+        addition += Math.Sqrt(Math.Pow(colorAddition, 2) + Math.Pow(rhythmBonus, 2))
+
+        Strain = previous.Strain * decay + (addition * additionFactor)
 
         'consistency
         'addition = (1 - previous.Consistency) * STAMINA_GROWTH
@@ -205,7 +205,7 @@
         previousDonLength = previous.previousDonLength
         previousKatLength = previous.previousKatLength
         If (IsKat() Xor previous.IsKat()) Then 'color is different from previous
-            returnVal = BASE_SWAP_BONUS - (SWAP_SCALE / (previous.SameTypeCount + 1))
+            returnVal = BASE_SWAP_BONUS - (SWAP_SCALE / (previous.SameTypeCount + 1.0))
 
             If (previous.IsKat()) Then 'previous is kat mono
                 If (previous.SameTypeCount Mod 2 = previousDonLength(0) Mod 2) Then
@@ -239,69 +239,30 @@
         Else
             SameTypeCount = previous.SameTypeCount + 1
         End If
-        Return returnVal * returnMultipler
+        Return Math.Min(COLOR_BONUS_CAP, returnVal * returnMultipler)
     End Function
-    'Private Function TypeChangeAdditionTest(ByRef previous As HitObject) As Double
-    '    Dim returnVal As Double = 0
-    '    previousDonLength = previous.previousDonLength
-    '    previousKatLength = previous.previousKatLength
-    '    If (IsKat() Xor previous.IsKat()) Then 'color is different from previous
 
-    '        If (previous.IsKat()) Then 'previous is kat mono
-    '            If (previousKatLength.Contains(previous.SameTypeCount)) Then
-    '                returnVal = WEAK_BONUS_SCALE * Math.Log(previous.SameTypeCount + SWAP_LOG_OFFSET, SWAP_LOG_BASE)
-    '            Else
-    '                returnVal = BIG_BONUS_SCALE * Math.Log(previous.SameTypeCount + SWAP_LOG_OFFSET, SWAP_LOG_BASE)
-    '            End If
-    '        Else 'previous is don mono
-    '            If (previousDonLength.Contains(previous.SameTypeCount)) Then
-    '                returnVal = WEAK_BONUS_SCALE * Math.Log(previous.SameTypeCount + SWAP_LOG_OFFSET, SWAP_LOG_BASE)
-    '            Else
-    '                returnVal = BIG_BONUS_SCALE * Math.Log(previous.SameTypeCount + SWAP_LOG_OFFSET, SWAP_LOG_BASE)
-    '            End If
-    '        End If
-
-    '        If (previous.IsKat()) Then 'if the object is a kat, the last chain was kay
-    '            previousKatLength(1) = previousKatLength(0)
-    '            previousKatLength(0) = previous.SameTypeCount
-    '        Else 'otherwise don
-    '            previousDonLength(1) = previousDonLength(0)
-    '            previousDonLength(0) = previous.SameTypeCount
-    '        End If
-    '    Else
-    '        SameTypeCount = previous.SameTypeCount + 1
-    '    End If
-    '    Return Math.Min(returnVal, MAX_SWAP_BONUS)
-    'End Function
     Private Function RhythmChangeAddition(ByRef previous As HitObject) As Double
         If previous.timeElapsed > 0 Then
-            If (previous.timeElapsed <> timeElapsed) Then
-                Dim speedup As Double = (timeElapsed / previous.timeElapsed)  'if this is <1, it has gotten faster
-                Dim slowdown As Double = (previous.timeElapsed / timeElapsed) 'if < 1, it got slower
+            Dim change As Double = timeElapsed / previous.timeElapsed
 
-                If (speedup < 0.98) Then 'sometimes gaps are slightly different due to position rounding
-                    If (speedup > 0.9) Then
-                        Return SPEEDUP_TINY_BONUS
-                    ElseIf (speedup >= 0.52) Then
-                        Return SPEEDUP_SMALL_BONUS
-                    ElseIf (speedup >= 0.48) Then
-                        Return SPEEDUP_MEDIUM_BONUS
-                    Else
-                        Return SPEEDUP_BIG_BONUS
-                    End If
-                ElseIf (slowdown < 0.98) Then
-                    If (slowdown > 0.9) Then
-                        Return SLOWDOWN_TINY_BONUS
-                    ElseIf (slowdown >= 0.52) Then
-                        Return SLOWDOWN_SMALL_BONUS
-                    ElseIf (slowdown >= 0.48) Then
-                        Return SLOWDOWN_MEDIUM_BONUS
-                    Else
-                        Return SLOWDOWN_BIG_BONUS
-                    End If
-                End If
+            If (change < 0.48) Then 'sometimes gaps are slightly different due to position rounding
+                Return SPEEDUP_BIG_BONUS
+            ElseIf (change < 0.52) Then
+                Return SPEEDUP_MEDIUM_BONUS
+            ElseIf change <= 0.9 Then
+                Return SPEEDUP_SMALL_BONUS
+            ElseIf change < 0.95 Then
+                Return SPEEDUP_TINY_BONUS
+            ElseIf change > 1.95 Then
+                Return SLOWDOWN_MEDIUM_BONUS
+            ElseIf change > 1.15 Then
+                Return SLOWDOWN_SMALL_BONUS
+            ElseIf change > 1.05 Then
+                Return SLOWDOWN_TINY_BONUS
             End If
         End If
+
         Return 0
     End Function
 

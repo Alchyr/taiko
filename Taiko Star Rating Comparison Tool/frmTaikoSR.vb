@@ -32,7 +32,7 @@
         TestOsuFolder()
     End Sub
     Private Sub SetupDataGridView()
-        dgvSR.ColumnCount = 10
+        dgvSR.ColumnCount = 9
         With dgvSR.ColumnHeadersDefaultCellStyle
             .BackColor = Color.White
             .ForeColor = Color.Black
@@ -50,13 +50,13 @@
             .Columns(0).Name = "Map"
             .Columns(1).Name = "Object Count"
             .Columns(2).Name = "Effective Object Count"
-            .Columns(3).Name = "PP for SS"
-            .Columns(4).Name = "Old Star Rating"
-            .Columns(5).Name = "New Star Rating"
-            .Columns(6).Name = "Rating Difference"
-            .Columns(7).Name = "Old Star Rating (DT)"
-            .Columns(8).Name = "New Star Rating (DT)"
-            .Columns(9).Name = "Rating Difference (DT)"
+            '.Columns(3).Name = "PP for SS"
+            .Columns(3).Name = "Old Star Rating"
+            .Columns(4).Name = "New Star Rating"
+            .Columns(5).Name = "Rating Difference"
+            .Columns(6).Name = "Old Star Rating (DT)"
+            .Columns(7).Name = "New Star Rating (DT)"
+            .Columns(8).Name = "Rating Difference (DT)"
 
             .Columns(0).AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCellsExceptHeader
 
@@ -133,7 +133,8 @@
                     While (displayedCount < difficultyCount)
                         Dim diff As Difficulty = data(displayedCount)
                         'Dim newRow() As Object = {diff.ToString(), diff.ObjectCount, Math.Round(diff.OldStarRating, 2), Math.Round(diff.NewStarRating, 2), Math.Round(diff.NewStarRating - diff.OldStarRating, 2), Math.Round(diff.OldStarRatingDT, 2), Math.Round(diff.NewStarRatingDT, 2), Math.Round(diff.NewStarRatingDT - diff.OldStarRatingDT, 2)}
-                        Dim newRow() As Object = {diff.ToString(), diff.ObjectCount, Math.Round(diff.EffectiveObjectCount, 2), Math.Round(diff.PPMax, 2), Math.Round(diff.OldStarRating, 2), Math.Round(diff.NewStarRating, 2), Math.Round(diff.NewStarRating - diff.OldStarRating, 2), Math.Round(diff.OldStarRatingDT, 2), Math.Round(diff.NewStarRatingDT, 2), Math.Round(diff.NewStarRatingDT - diff.OldStarRatingDT, 2)}
+                        'Dim newRow() As Object = {diff.ToString(), diff.ObjectCount, Math.Round(diff.EffectiveObjectCount, 2), Math.Round(diff.PPMax, 2), Math.Round(diff.OldStarRating, 2), Math.Round(diff.NewStarRating, 2), Math.Round(diff.NewStarRating - diff.OldStarRating, 2), Math.Round(diff.OldStarRatingDT, 2), Math.Round(diff.NewStarRatingDT, 2), Math.Round(diff.NewStarRatingDT - diff.OldStarRatingDT, 2)}
+                        Dim newRow() As Object = {diff.ToString(), diff.ObjectCount, Math.Round(diff.EffectiveObjectCount, 2), Math.Round(diff.OldStarRating, 2), Math.Round(diff.NewStarRating, 2), Math.Round(diff.NewStarRating - diff.OldStarRating, 2), Math.Round(diff.OldStarRatingDT, 2), Math.Round(diff.NewStarRatingDT, 2), Math.Round(diff.NewStarRatingDT - diff.OldStarRatingDT, 2)}
                         dgvSR.Rows.Add(newRow)
                         displayedCount += 1
                     End While
@@ -360,7 +361,7 @@
                 End If
             Next
             If add Then
-                Dim newRow() As Object = {item.ToString(), item.ObjectCount, Math.Round(item.EffectiveObjectCount, 2), Math.Round(item.PPMax, 2), Math.Round(item.OldStarRating, 2), Math.Round(item.NewStarRating, 2), Math.Round(item.NewStarRating - item.OldStarRating, 2), Math.Round(item.OldStarRatingDT, 2), Math.Round(item.NewStarRatingDT, 2), Math.Round(item.NewStarRatingDT - item.OldStarRatingDT, 2)}
+                Dim newRow() As Object = {item.ToString(), item.ObjectCount, Math.Round(item.EffectiveObjectCount, 2), Math.Round(item.OldStarRating, 2), Math.Round(item.NewStarRating, 2), Math.Round(item.NewStarRating - item.OldStarRating, 2), Math.Round(item.OldStarRatingDT, 2), Math.Round(item.NewStarRatingDT, 2), Math.Round(item.NewStarRatingDT - item.OldStarRatingDT, 2)}
                 dgvSR.Rows.Add(newRow)
             End If
         Next
@@ -369,7 +370,7 @@
         If (dgvSR.Rows.Count < displayedCount) Then
             dgvSR.Rows.Clear()
             For Each item As Difficulty In data
-                Dim newRow() As Object = {item.ToString(), item.ObjectCount, Math.Round(item.EffectiveObjectCount, 2), Math.Round(item.PPMax, 2), Math.Round(item.OldStarRating, 2), Math.Round(item.NewStarRating, 2), Math.Round(item.NewStarRating - item.OldStarRating, 2), Math.Round(item.OldStarRatingDT, 2), Math.Round(item.NewStarRatingDT, 2), Math.Round(item.NewStarRatingDT - item.OldStarRatingDT, 2)}
+                Dim newRow() As Object = {item.ToString(), item.ObjectCount, Math.Round(item.EffectiveObjectCount, 2), Math.Round(item.OldStarRating, 2), Math.Round(item.NewStarRating, 2), Math.Round(item.NewStarRating - item.OldStarRating, 2), Math.Round(item.OldStarRatingDT, 2), Math.Round(item.NewStarRatingDT, 2), Math.Round(item.NewStarRatingDT - item.OldStarRatingDT, 2)}
                 dgvSR.Rows.Add(newRow)
             Next
         End If

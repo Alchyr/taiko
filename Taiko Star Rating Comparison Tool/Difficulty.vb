@@ -9,7 +9,7 @@
 
     Public Property ObjectCount As Integer = 0
     Public Property EffectiveObjectCount As Double = 0
-    Public Property PPMax As Double = 0
+    'Public Property PPMax As Double = 0
     Public Property OldStarRating As Double = 0
     Public Property NewStarRating As Double = 0
     Public Property OldStarRatingDT As Double = 0
@@ -37,7 +37,7 @@
             CalculateStrains(hitobjects, 1)
             OldStarRating = OldCalculateDifficulty(hitobjects, 1) * old_star_scaling_factor
             NewStarRating = CalculateDifficulty(hitobjects, 1) * STAR_SCALING_FACTOR
-            PPMax = ComputeStrainValue() * ComputeAccuracyValue()
+            'PPMax = ComputeStrainValue() * ComputeAccuracyValue()
         End If
     End Sub
     Public Sub CalcDT(ByRef hitobjects As List(Of HitObject))
@@ -84,7 +84,6 @@
                 End If
                 'Find effective object count, regardless of validity or not
                 Dim objectWeight As Double = Math.Pow(hit.Strain / MaxStrain, EFFECTIVE_OBJECT_DECAY_SCALE) '0.05 / (-(hit.Strain / MaxStrain) + 1.05))
-                hit.PPWeight = objectWeight
                 EffectiveObjectCount += Math.Min(1, objectWeight)
             Next
 
@@ -169,7 +168,7 @@
 
     'for pp
     Private Function ComputeStrainValue() As Double
-        Dim strainValue As Double = Math.Pow(NewStarRating, 2) * 7.5 + 1 '1 just makes very low star rating maps worth slightly more
+        Dim strainValue As Double = (Math.Pow(NewStarRating, 2) + 3) * 6 + 1 '1 just makes very low star rating maps worth slightly more
         'the 1 may not be necessary
 
         Dim lengthMultiplier As Double
@@ -199,10 +198,11 @@
         Dim testAcc As Double = 1 '100% acc, assuming acc is based 0-1
 
         'for hitwindow, min for 300 is 13.333 ms (od10 dt, or od7hrdt)
-        'maximum is 66.66667 ms (od0 ht)
-        Dim accMultiplier As Double = (30 / (HitWindow + 5) - 1) / 4 + 1
+        'maximum is 66.66667 ms (od0 ht) *.98 multiplier
+        'to 13.3333 ms, *1.75 multiplier
+        Dim accMultiplier As Double = 120 / (HitWindow + 55)
 
         'do some tweaking later on this exponent, affects how quickly acc falls off
-        Return Math.Pow(testAcc, 2) * accMultiplier
+        Return Math.Pow(testAcc, 7) * accMultiplier
     End Function
 End Class

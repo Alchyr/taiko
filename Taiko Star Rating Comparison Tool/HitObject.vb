@@ -205,7 +205,7 @@
         previousDonLength = previous.previousDonLength
         previousKatLength = previous.previousKatLength
         If (IsKat() Xor previous.IsKat()) Then 'color is different from previous
-            returnVal = BASE_SWAP_BONUS - (SWAP_SCALE / (previous.SameTypeCount + 1.0))
+            returnVal = BASE_SWAP_BONUS - (SWAP_SCALE / (previous.SameTypeCount + 0.65))
 
             If (previous.IsKat()) Then 'previous is kat mono
                 If (previous.SameTypeCount Mod 2 = previousDonLength(0) Mod 2) Then
@@ -239,7 +239,7 @@
         Else
             SameTypeCount = previous.SameTypeCount + 1
         End If
-        Return Math.Min(COLOR_BONUS_CAP, returnVal * returnMultipler)
+        Return Math.Min(COLOR_BONUS_CAP, returnVal) * returnMultipler
     End Function
 
     Private Function RhythmChangeAddition(ByRef previous As HitObject) As Double
